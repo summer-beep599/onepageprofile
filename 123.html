@@ -1,0 +1,2131 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>燕京生活啟航站 - 像素冒險</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            image-rendering: pixelated;
+        }
+
+        @font-face {
+            font-family: 'PixelFont';
+            src: local('Courier New'), local('monospace');
+        }
+
+        :root {
+            --pixel-border: 4px solid #2d2d2d;
+            --pixel-shadow: 6px 6px 0px #1a1a1a;
+            --bg-primary: #f5ede4;
+            --bg-secondary: #e8ddd0;
+            --text-dark: #2d2d2d;
+        }
+
+        body {
+            background: #2d2d2d;
+            font-family: 'Courier New', 'PixelFont', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 12px;
+            margin: 0;
+        }
+
+        .game-wrapper {
+            max-width: 1200px;
+            width: 100%;
+            background: var(--bg-primary);
+            border: var(--pixel-border);
+            box-shadow: var(--pixel-shadow);
+            padding: 12px;
+            position: relative;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2d2d2d;
+            padding: 8px 16px;
+            border-bottom: 4px solid #1a1a1a;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .game-header .title {
+            color: #aaddaa;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 0 #1a3a1a;
+        }
+
+        .game-header .status {
+            color: #ddd;
+            font-size: 0.7rem;
+            background: #222;
+            padding: 4px 12px;
+            border: 2px solid #555;
+        }
+
+        .game-header .inventory {
+            color: #ffd700;
+            font-size: 0.7rem;
+            background: #2a2a1a;
+            padding: 4px 12px;
+            border: 2px solid #887a3a;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .game-header .inventory span {
+            font-size: 1.1rem;
+        }
+
+        .game-screen {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            min-height: 600px;
+        }
+
+        .left-panel {
+            flex: 0 0 45%;
+            min-width: 280px;
+            background: #b5d4e8;
+            border: var(--pixel-border);
+            box-shadow: inset 0 0 0 4px #d4e8f5;
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 4 / 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .left-panel canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            image-rendering: pixelated;
+            background: #b5d4e8;
+        }
+
+        .right-panel {
+            flex: 1;
+            min-width: 260px;
+            background: #f5ede4;
+            border: var(--pixel-border);
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: inset 0 0 0 4px #e8ddd0;
+            max-height: 620px;
+            overflow-y: auto;
+        }
+
+        .typewriter {
+            font-family: 'Courier New', 'PixelFont', monospace;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-dark);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .typewriter .cursor-blink {
+            display: inline-block;
+            width: 10px;
+            height: 1.1em;
+            background: var(--text-dark);
+            animation: blink 0.7s step-end infinite;
+            vertical-align: text-bottom;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
+
+        .pixel-btn {
+            background: #d4c5b2;
+            border: 4px solid #1a1a1a;
+            box-shadow: 4px 4px 0 #0a0a0a;
+            padding: 10px 20px;
+            font-family: 'Courier New', 'PixelFont', monospace;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #1a1a1a;
+            cursor: pointer;
+            transition: all 0.05s linear;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .pixel-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: none;
+        }
+        .pixel-btn:hover {
+            background: #e0d4c4;
+        }
+        .pixel-btn.primary {
+            background: #7ab87a;
+            color: #f5f0e8;
+            border-color: #2a5a2a;
+            box-shadow: 4px 4px 0 #1a3a1a;
+        }
+        .pixel-btn.primary:hover {
+            background: #8ac88a;
+        }
+        .pixel-btn.secondary {
+            background: #7ab0c8;
+            color: #f5f0e8;
+            border-color: #2a4a5a;
+            box-shadow: 4px 4px 0 #1a2a3a;
+        }
+        .pixel-btn.secondary:hover {
+            background: #8ac0d8;
+        }
+        .pixel-btn.warning {
+            background: #d4b84a;
+            color: #1a1a1a;
+            border-color: #7a6a2a;
+            box-shadow: 4px 4px 0 #4a3a1a;
+        }
+        .pixel-btn.warning:hover {
+            background: #e4c85a;
+        }
+        .pixel-btn:disabled {
+            opacity: 0.4;
+            transform: none;
+            box-shadow: 4px 4px 0 #0a0a0a;
+            cursor: not-allowed;
+        }
+
+        .option-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 12px 0 16px;
+        }
+
+        .option-btn {
+            background: #f5ede4;
+            border: 4px solid #2d2d2d;
+            box-shadow: 4px 4px 0 #0a0a0a;
+            padding: 12px 16px;
+            font-family: 'Courier New', 'PixelFont', monospace;
+            font-size: 0.85rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.05s linear;
+            color: #1a1a1a;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option-btn .label {
+            background: #2d2d2d;
+            color: #f5f0e8;
+            padding: 2px 12px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            border: 2px solid #0a0a0a;
+        }
+
+        .option-btn:hover {
+            background: #f5ede4;
+            transform: scale(1.01);
+        }
+
+        .option-btn.selected {
+            background: #d4e8f5;
+            border-color: #4a7a9a;
+            box-shadow: 2px 2px 0 #2a4a6a;
+            transform: translate(2px, 2px);
+        }
+
+        .option-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: none;
+        }
+
+        .progress-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .progress-track {
+            flex: 1;
+            height: 20px;
+            background: #d4c5b2;
+            border: 3px solid #2d2d2d;
+            box-shadow: inset 2px 2px 0 #b0a090;
+            min-width: 80px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #7ab87a;
+            border-right: 3px solid #2d2d2d;
+            transition: width 0.15s linear;
+        }
+
+        .progress-text {
+            font-size: 0.75rem;
+            font-weight: bold;
+            white-space: nowrap;
+            background: #2d2d2d;
+            color: #ddd;
+            padding: 2px 12px;
+            border: 2px solid #0a0a0a;
+            letter-spacing: 0.5px;
+        }
+
+        /* 道具彈窗 - 置中放大 */
+        .item-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .item-popup {
+            background: #2d2d2d;
+            border: 6px solid #ffd700;
+            padding: 30px 40px;
+            max-width: 440px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.4);
+            animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .item-popup .item-icon {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .item-popup .item-name {
+            color: #ffd700;
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: 'Courier New', 'PixelFont', monospace;
+        }
+
+        .item-popup .item-desc {
+            color: #ddd;
+            font-size: 0.9rem;
+            margin: 10px 0 16px;
+            font-family: 'Courier New', 'PixelFont', monospace;
+            line-height: 1.5;
+        }
+
+        .item-popup .pixel-btn {
+            font-size: 0.8rem;
+            padding: 10px 30px;
+        }
+
+        /* 角色自訂 */
+        .customize-area {
+            background: #e8ddd0;
+            border: 4px solid #2d2d2d;
+            padding: 12px 14px;
+            margin: 8px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .customize-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+            background: #f5ede4;
+            padding: 6px 10px;
+            border: 3px solid #2d2d2d;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .customize-group label {
+            font-size: 0.6rem;
+            font-weight: bold;
+            color: #2d2d2d;
+        }
+
+        .customize-group .options {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .customize-group .opt-btn {
+            background: #d4c5b2;
+            border: 3px solid #2d2d2d;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.05s;
+            font-family: 'Courier New', monospace;
+            line-height: 1;
+            font-weight: bold;
+        }
+
+        .customize-group .opt-btn.active {
+            background: #7ab87a;
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            color: #fff;
+        }
+
+        .customize-group .opt-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* 首頁 */
+        #homePage .title-lg {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1a1a1a;
+            text-shadow: 4px 4px 0 #b8a090;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .name-input-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .name-input-area input {
+            flex: 1;
+            min-width: 140px;
+            padding: 10px 14px;
+            font-family: 'Courier New', 'PixelFont', monospace;
+            font-size: 0.95rem;
+            border: 4px solid #2d2d2d;
+            background: #fcf8f0;
+            outline: none;
+            box-shadow: inset 2px 2px 0 #b0a090;
+        }
+
+        .name-input-area input:focus {
+            border-color: #4a7a9a;
+        }
+
+        /* 結果頁 */
+        #resultPage .result-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-bottom: 4px solid #2d2d2d;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+        }
+
+        .trait-bar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 6px 0;
+        }
+
+        .trait-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .trait-bar-row .tlabel {
+            min-width: 44px;
+            text-align: right;
+            font-size: 0.6rem;
+            color: #1a1a1a;
+        }
+
+        .trait-bar-row .tlabel.right {
+            text-align: left;
+            min-width: 44px;
+        }
+
+        .trait-bar-track {
+            flex: 1;
+            height: 24px;
+            background: #d4c5b2;
+            border: 3px solid #2d2d2d;
+            position: relative;
+            box-shadow: inset 2px 2px 0 #b0a090;
+            min-width: 60px;
+            display: flex;
+        }
+
+        .trait-bar-fill-left {
+            height: 100%;
+            background: #7ab0c8;
+            border-right: 2px solid #2d2d2d;
+            transition: width 0.4s;
+            flex-shrink: 0;
+        }
+
+        .trait-bar-fill-right {
+            height: 100%;
+            background: #e8a86a;
+            border-left: 2px solid #2d2d2d;
+            transition: width 0.4s;
+            flex-shrink: 0;
+        }
+
+        .trait-score {
+            font-size: 0.6rem;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .proto-box {
+            background: #e8ddd0;
+            border: 4px solid #2d2d2d;
+            padding: 12px 16px;
+            margin: 8px 0;
+            box-shadow: inset 0 0 0 4px #f5ede4;
+        }
+
+        .proto-box .proto-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .proto-box .proto-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 6px 0;
+        }
+
+        .proto-box .proto-tags span {
+            background: #2d2d2d;
+            color: #f5f0e8;
+            padding: 2px 12px;
+            font-size: 0.6rem;
+            border: 2px solid #0a0a0a;
+        }
+
+        .advice-block {
+            background: #f5ede4;
+            border: 3px solid #2d2d2d;
+            padding: 8px 12px;
+            margin: 4px 0;
+            font-size: 0.78rem;
+            border-left: 12px solid #7ab87a;
+        }
+
+        .advice-block h4 {
+            font-size: 0.8rem;
+            margin-bottom: 2px;
+        }
+
+        .answer-log {
+            background: #f5ede4;
+            border: 3px solid #2d2d2d;
+            padding: 8px 12px;
+            max-height: 140px;
+            overflow-y: auto;
+            font-size: 0.65rem;
+            margin: 6px 0;
+        }
+
+        .answer-log .log-item {
+            padding: 2px 0;
+            border-bottom: 1px solid #d4c5b2;
+        }
+        .answer-log .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 8px 0;
+            justify-content: center;
+        }
+
+        .result-actions .pixel-btn {
+            font-size: 0.7rem;
+            padding: 8px 14px;
+            min-width: 90px;
+        }
+
+        .care-note {
+            background: #f5d8d0;
+            border: 4px solid #c45a5a;
+            padding: 10px 14px;
+            margin: 6px 0;
+            font-size: 0.8rem;
+            border-left: 12px solid #c45a5a;
+        }
+
+        .inventory-display {
+            background: #e8ddd0;
+            border: 4px solid #2d2d2d;
+            padding: 10px 14px;
+            margin: 6px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .inventory-display .item-badge {
+            background: #2d2d2d;
+            color: #ffd700;
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            border: 2px solid #ffd700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .costume-unlock {
+            background: #2d2d2d;
+            border: 4px solid #ff6a6a;
+            color: #ff6a6a;
+            padding: 8px 16px;
+            margin: 6px 0;
+            font-size: 0.8rem;
+            text-align: center;
+            animation: popIn 0.6s ease;
+        }
+
+        .right-panel::-webkit-scrollbar {
+            width: 10px;
+        }
+        .right-panel::-webkit-scrollbar-track {
+            background: #d4c5b2;
+            border: 2px solid #2d2d2d;
+        }
+        .right-panel::-webkit-scrollbar-thumb {
+            background: #8a7a6a;
+            border: 2px solid #2d2d2d;
+        }
+
+        @media (max-width: 760px) {
+            .left-panel {
+                flex: 1 1 100%;
+                aspect-ratio: 16 / 9;
+                min-height: 180px;
+            }
+            .right-panel {
+                flex: 1 1 100%;
+                max-height: 460px;
+            }
+            .game-wrapper {
+                padding: 8px;
+            }
+            .game-header .title {
+                font-size: 0.75rem;
+            }
+            #homePage .title-lg {
+                font-size: 1.2rem;
+            }
+            .option-btn {
+                font-size: 0.75rem;
+                padding: 8px 10px;
+            }
+            .customize-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .customize-group {
+                min-width: 60px;
+            }
+            .trait-bar-row {
+                font-size: 0.55rem;
+            }
+            .item-popup {
+                padding: 20px;
+                max-width: 320px;
+            }
+            .item-popup .item-icon {
+                font-size: 3rem;
+            }
+            .item-popup .item-name {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .game-wrapper {
+                box-shadow: none;
+                border: 2px solid #000;
+                padding: 8px;
+            }
+            .left-panel {
+                display: none;
+            }
+            .right-panel {
+                flex: 1 1 100%;
+                max-height: none;
+                overflow: visible;
+            }
+            .pixel-btn {
+                display: none;
+            }
+            .game-header .status {
+                display: none;
+            }
+            .game-header .inventory {
+                display: none;
+            }
+            .result-actions .pixel-btn {
+                display: none;
+            }
+            .option-btn {
+                border: 2px solid #000;
+                box-shadow: none;
+            }
+            .option-btn.selected {
+                background: #d4e8f5;
+            }
+            .progress-area {
+                display: none;
+            }
+            .item-popup-overlay {
+                display: none !important;
+            }
+            .costume-unlock {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-wrapper" id="app">
+        <div class="game-header">
+            <span class="title">🎮 燕京生活啟航站</span>
+            <span class="status" id="headerStatus">🏫 中華基督教會燕京書院</span>
+            <div class="inventory">🎒 道具: <span id="itemDisplay">-</span></div>
+        </div>
+
+        <div class="game-screen">
+            <div class="left-panel">
+                <canvas id="pixelCanvas" width="640" height="480"></canvas>
+            </div>
+            <div class="right-panel" id="rightPanel">
+                <div id="dynamicContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  1. Google Apps Script URL (已更新)
+        // ================================================================
+        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKHI2NNIg6xjfwMf0xjhwAKdplHstkyJbVpktJm3FHtGcDd0ZXLxnn5nogyOcTEzTNYw/exec';
+
+        // ================================================================
+        //  2. 題庫 (10題)
+        // ================================================================
+        const QUESTIONS = [{
+            id: 1,
+            stage: '中一',
+            scene: 'classroom',
+            text: '升上中一，班上沒有小學同學。開學第一週你會怎麼做？',
+            options: [
+                { label: 'A', text: '認為問題不大，主動打招呼便會認識到新朋友。', scores: { 安全感: 4, 規劃性: 2 }, item: { icon: '🤝',
+                        name: '友誼之手', desc: '你主動伸出友誼之手，獲得新朋友嘅信任！' } },
+                { label: 'B', text: '認為隨遇而安便好，開學後自然會認識到新朋友。', scores: { 安全感: 4, 隨興性: 2 }, item: { icon: '🌊',
+                        name: '隨波逐流', desc: '你選擇順其自然，獲得一顆隨遇而安嘅心！' } },
+                { label: 'C', text: '決定報名多項課外活動，認為參與活動是認識好朋友的機會。', scores: { 冒險感: 4, 規劃性: 2 }, item: { icon: '📋',
+                        name: '活動日程', desc: '你積極參與課外活動，獲得豐富嘅校園生活！' } },
+                { label: 'D', text: '誰坐隔壁就跟誰聊。', scores: { 冒險感: 4, 隨興性: 2 }, item: { icon: '💬', name: '即興對話',
+                        desc: '你隨興與鄰座聊天，獲得意想不到嘅新朋友！' } }
+            ]
+        }, {
+            id: 2,
+            stage: '中一',
+            scene: 'camp',
+            text: '歷險營教練出了一個超難的解謎關卡，你會？',
+            options: [
+                { label: 'A', text: '專心研究規則，自己破解。', scores: { 學習力: 4, 顧己: 2 }, item: { icon: '🧠', name: '智慧之光',
+                        desc: '你靠自己的力量破解謎題，獲得智慧的肯定！' } },
+                { label: 'B', text: '專心研究規則，和同學互相討論可行性。', scores: { 學習力: 4, 利他: 2 }, item: { icon: '🤝',
+                        name: '合作橋樑', desc: '你與同學合作破解謎題，獲得團隊合作嘅力量！' } },
+                { label: 'C', text: '突然有個天馬行空的點子！自己破解。', scores: { 創造力: 4, 顧己: 2 }, item: { icon: '💡',
+                        name: '靈感火花', desc: '你天馬行空嘅創意，獲得靈感嘅火花！' } },
+                { label: 'D', text: '突然有個天馬行空的點子！和同學互相討論可行性。', scores: { 創造力: 4, 利他: 2 }, item: { icon: '🌟',
+                        name: '創意之星', desc: '你與同學分享創意，獲得閃耀嘅創意之星！' } }
+            ]
+        }, {
+            id: 3,
+            stage: '中二/中三',
+            scene: 'forest',
+            text: '學校推出「野外求生營」，朋友極力說服你一起報名，但父母非常反對。你會？',
+            options: [
+                { label: 'A', text: '決定答應朋友，但在出發前，一直搜尋野外生存攻略。', scores: { 朋友為重: 4, 安全感: 2 }, item: { icon: '📖',
+                        name: '生存指南', desc: '你為冒險做好準備，獲得野外生存嘅知識！' } },
+                { label: 'B', text: '死黨都去！冒險肯定超好玩，立刻答應！', scores: { 朋友為重: 4, 冒險感: 2 }, item: { icon: '🔥',
+                        name: '冒險之火', desc: '你跟隨朋友踏上冒險，獲得勇氣嘅火種！' } },
+                { label: 'C', text: '我不想讓父母擔心，留在家陪家人也是很好的選擇。', scores: { 家庭為重: 4, 安全感: 2 }, item: { icon: '🏠',
+                        name: '家庭溫暖', desc: '你選擇陪伴家人，獲得家庭嘅溫暖與支持！' } },
+                { label: 'D', text: '我不想讓父母擔心，所以我上網查資料說服他們，挑戰自己！', scores: { 家庭為重: 4, 冒險感: 2 },
+                    item: { icon: '⚡', name: '挑戰之雷', desc: '你說服家人挑戰自己，獲得突破嘅雷電力量！' } }
+            ]
+        }, {
+            id: 4,
+            stage: '中二/中三',
+            scene: 'library',
+            text: '面對中三越來越深的課程，你平時溫習時比較偏向哪一種方式？',
+            options: [
+                { label: 'A', text: '按自己定的時間表溫習，跟著老師的筆記和課本範圍，專注背熟重點同標準答案。', scores: { 規劃性: 4,
+                        學習力: 2 }, item: { icon: '📚', name: '學霸書卷', desc: '你勤奮溫習，獲得知識嘅書卷！' } },
+                { label: 'B', text: '按自己定的時間表溫習，鍾意自己設計獨特方法去記。', scores: { 規劃性: 4, 創造力: 2 }, item: { icon: '🎨',
+                        name: '創意畫筆', desc: '你用創意方法溫習，獲得獨特嘅學習畫筆！' } },
+                { label: 'C', text: '通常都係考前先開始讀，跟著老師的筆記和課本範圍，專注背熟重點同標準答案。', scores: { 隨興性: 4,
+                        學習力: 2 }, item: { icon: '⏰', name: '衝刺沙漏', desc: '你考前衝刺，獲得時間嘅沙漏！' } },
+                { label: 'D', text: '通常都係考前先開始讀，鍾意自己設計獨特方法去記。', scores: { 隨興性: 4, 創造力: 2 }, item: { icon: '🌀',
+                        name: '靈感漩渦', desc: '你憑靈感溫習，獲得創意嘅漩渦力量！' } }
+            ]
+        }, {
+            id: 5,
+            stage: '中四',
+            scene: 'community',
+            text: '上午學校義工活動結束後需要收拾物資，但你已經很累了，你會怎麼辦？',
+            options: [
+                { label: 'A', text: '立刻回家休息，再說吧。', scores: { 顧己: 4, 隨興性: 2 }, item: { icon: '😴', name: '休息枕頭',
+                        desc: '你選擇休息，獲得充電嘅枕頭！' } },
+                { label: 'B', text: '見到同學還在努力，決定一起幫忙。', scores: { 利他: 4, 隨興性: 2 }, item: { icon: '🤲',
+                        name: '助人之手', desc: '你幫助同學收拾，獲得善良嘅雙手！' } },
+                { label: 'C', text: '衡量過自己的體力，於是向老師解釋身體情況，申請早點回家。', scores: { 顧己: 4, 規劃性: 2 },
+                    item: { icon: '⚖️', name: '平衡之秤', desc: '你衡量體力與責任，獲得平衡嘅智慧！' } },
+                { label: 'D', text: '與其他同學分擔不同工作，盡快完成後一起回家。', scores: { 利他: 4, 規劃性: 2 }, item: { icon: '🤝',
+                        name: '團結之環', desc: '你與同學分工合作，獲得團結嘅力量！' } }
+            ]
+        }, {
+            id: 6,
+            stage: '中四',
+            scene: 'playground',
+            text: '小息時，你目睹新同學被幾個高大的同學言語欺凌，你會？',
+            options: [
+                { label: 'A', text: '保護自己最重要！當作沒看到，快步走開。', scores: { 安全感: 4, 顧己: 2 }, item: { icon: '🛡️',
+                        name: '自我保護', desc: '你選擇保護自己，獲得安全嘅盾牌！' } },
+                { label: 'B', text: '很想幫他但怕被報復，偷偷跑去教員室找老師。', scores: { 安全感: 4, 利他: 2 }, item: { icon: '📢',
+                        name: '正義之聲', desc: '你勇敢尋求幫助，獲得正義嘅聲音！' } },
+                { label: 'C', text: '正義感爆棚！直接走過去喝止他們，保護同學。', scores: { 冒險感: 4, 利他: 2 }, item: { icon: '⚔️',
+                        name: '勇氣之劍', desc: '你挺身而出，獲得勇氣嘅寶劍！' } },
+                { label: 'D', text: '害怕日後也會被他們欺凌，所以決定加入他們一起言語欺凌新同學。', scores: { 冒險感: 4, 顧己: 2 },
+                    item: { icon: '🌫️', name: '迷失迷霧', desc: '你選擇隨波逐流，獲得提醒你嘅迷霧！' } }
+            ]
+        }, {
+            id: 7,
+            stage: '中五',
+            scene: 'classroom_group',
+            text: '小組報告進度嚴重落後，組員意見分歧，你作為組長會？',
+            options: [
+                { label: 'A', text: '翻查範例，制定詳細補救時間表，按部就班追進度。', scores: { 學習力: 4, 規劃性: 2 }, item: { icon: '📋',
+                        name: '規劃藍圖', desc: '你制定詳細計劃，獲得成功嘅藍圖！' } },
+                { label: 'B', text: '與其規劃，不如先動手！邊做邊學，用行動補救。', scores: { 學習力: 4, 隨興性: 2 }, item: { icon: '🏃',
+                        name: '行動之靴', desc: '你用行動補救進度，獲得敏捷嘅靴子！' } },
+                { label: 'C', text: '來個大翻轉！提出全新方向，不設死線讓靈感湧現。', scores: { 創造力: 4, 隨興性: 2 }, item: { icon: '🌈',
+                        name: '創意彩虹', desc: '你帶領組員翻轉方向，獲得創意嘅彩虹！' } },
+                { label: 'D', text: '想到大膽創新的點子，說服組員並排好兩週進度。', scores: { 創造力: 4, 規劃性: 2 }, item: { icon: '🚀',
+                        name: '火箭計劃', desc: '你結合創意與規劃，獲得衝破天際嘅火箭！' } }
+            ]
+        }, {
+            id: 8,
+            stage: '中五',
+            scene: 'classroom_teacher',
+            text: '老師在全班面前批評你，但其實你沒有做錯，你會？',
+            options: [
+                { label: 'A', text: '即刻舉手解釋，不想被冤枉。', scores: { 冒險感: 4, 利他: 2 }, item: { icon: '🗣️', name: '真相之聲',
+                        desc: '你勇敢解釋真相，獲得清晰嘅聲音！' } },
+                { label: 'B', text: '覺得好委屈，但不敢出聲，放學先偷偷找老師解釋。', scores: { 安全感: 4, 顧己: 2 }, item: { icon: '🌙',
+                        name: '月亮護身', desc: '你選擇低調處理，獲得月亮嘅寧靜保護！' } },
+                { label: 'C', text: '不想令事情變嚴重，決定忍一忍就過。', scores: { 安全感: 4, 利他: 2 }, item: { icon: '☁️',
+                        name: '雲朵之忍', desc: '你選擇忍耐顧全大局，獲得雲朵嘅包容！' } },
+                { label: 'D', text: '立刻站起身反駁，就算得罪老師都要證明自己清白。', scores: { 冒險感: 4, 顧己: 2 }, item: { icon: '⚡',
+                        name: '雷電之怒', desc: '你全力捍衛清白，獲得雷電嘅震撼力量！' } }
+            ]
+        }, {
+            id: 9,
+            stage: '中六',
+            scene: 'home',
+            text: '週末期間，阿媽切好水果等你一起看電視，朋友突然叫你去打機，你會？',
+            options: [
+                { label: 'A', text: '拒絕朋友。早就規劃好進度，答應了阿媽就按計劃陪家人。', scores: { 規劃性: 4, 家庭為重: 2 },
+                    item: { icon: '🍎', name: '家庭之果', desc: '你選擇陪伴家人，獲得甜蜜嘅果實！' } },
+                { label: 'B', text: '拒絕阿媽。早就跟朋友約好，朋友間的信用不能失。', scores: { 規劃性: 4, 朋友為重: 2 }, item: { icon: '🎮',
+                        name: '友誼手把', desc: '你選擇守信赴約，獲得友誼嘅遊戲手把！' } },
+                { label: 'C', text: '拒絕朋友。雖然沒規劃，但此刻就是想留在家享受溫暖。', scores: { 隨興性: 4, 家庭為重: 2 },
+                    item: { icon: '🛋️', name: '舒適梳化', desc: '你享受家庭溫暖，獲得舒適嘅梳化！' } },
+                { label: 'D', text: '拒絕阿媽。溫習到悶，隨興衝出去玩，朋友是精神支柱！', scores: { 隨興性: 4, 朋友為重: 2 }, item: { icon: '🎯',
+                        name: '快樂標靶', desc: '你與朋友放鬆玩樂，獲得快樂嘅標靶！' } }
+            ]
+        }, {
+            id: 10,
+            stage: '中六',
+            scene: 'graduation',
+            text: 'DSE放榜後改JUPAS志願，你的最終抉擇是？',
+            options: [
+                { label: 'A', text: '選傳統神科，符合父母期望，且喜歡專業深造。', scores: { 學習力: 4, 家庭為重: 2 }, item: { icon: '🏆',
+                        name: '學術獎盃', desc: '你追求專業深造，獲得學術嘅獎盃！' } },
+                { label: 'B', text: '選傳統神科，因為死黨也選，可以一起溫習打拼。', scores: { 學習力: 4, 朋友為重: 2 }, item: { icon: '🤝',
+                        name: '戰友之握', desc: '你與死黨並肩作戰，獲得戰友嘅握手！' } },
+                { label: 'C', text: '選新興創意學系，追求多元發展，爸媽也支持。', scores: { 創造力: 4, 家庭為重: 2 }, item: { icon: '🎨',
+                        name: '創意調色盤', desc: '你追求多元發展，獲得創意嘅調色盤！' } },
+                { label: 'D', text: '選新興創意學系，因為死黨都選，想繼續一起玩創作。', scores: { 創造力: 4, 朋友為重: 2 }, item: { icon: '🎭',
+                        name: '藝術面具', desc: '你與朋友一起創作，獲得藝術嘅面具！' } }
+            ]
+        }];
+
+        // ================================================================
+        //  3. 原型定義
+        // ================================================================
+        const PROTOTYPES = [{
+            id: '穩健型學霸',
+            tags: ['📚 JUPAS戰略家', '👩‍👦 阿媽放心機', '🛡️ 穩陣第一', '📝 Past Paper操盤手'],
+            desc: '你在校園中屬於非常讓人放心的存在。在學業上，你傾向於制定清晰的溫習計畫，對Past Paper的評分標準有極高的鑽研精神，不喜歡沒有底牌的隨性發揮。在人際與家庭中，你非常看重家人的感受，在面對校園衝突或同儕壓力時，傾向選擇最安全、合法、不讓家人擔心的成熟解法。',
+            advice: {
+                academic: '你非常適合結構嚴謹、有跡可循的學科（如理科、商科）。在Study Leave期間，建議繼續發揮你的規劃優勢，但可以嘗試容許10%的時間「彈性休息」，避免過度緊繃。',
+                social: '你是一個很值得信賴的夥伴，但在分組Project時，有時會因為太追求「安全、不扣分」而顯得有些保守。可以試著多聽聽組內「創造力型」同學的點子，或許會有意想不到的火花。',
+                emotion: '由於「家庭為重」與「安全感」得分較高，當家庭期望與你的表現不符時，你容易產生巨大的內部焦慮。記得適時向老師、輔導員或社工傾訴，不要把所有責任都一個人扛。'
+            }
+        }, {
+            id: '冒險型創作者',
+            tags: ['🎨 靈感獵人', '🤝 朋友遮', '🔥 鍾意玩新嘢', '🚀 唔跟規矩'],
+            desc: '你是校園中的點子王！你討厭沉悶和框架，喜歡挑戰新鮮事物。在學業上對創意科目感興趣，不喜歡死記硬背。人際上非常重視朋友，願意為朋友兩肋插刀，但有時會因為衝動而忽略家庭或安全考慮。你的創造力和勇氣是獨一無二的寶藏。',
+            advice: {
+                academic: '你非常適合藝術、科技、跨學科等重視創意的領域。建議在追求創新的同時，可以為自己設立一些基本框架，讓天馬行空的想法更有方向。',
+                social: '你是朋友圈中的靈魂人物，但有時太過隨興可能讓較謹慎的朋友感到不安。學習在冒險前先簡單溝通計劃，能讓團隊合作更順暢。',
+                emotion: '你的情緒起伏較大，當創意被否定時容易沮喪。記得，失敗是創作的必經之路，可以多與信任的老師或朋友分享你的想法，從中獲得支持。'
+            }
+        }, {
+            id: '平衡型協調者',
+            tags: ['⚖️ 兩頭蛇', '🤗 乜都OK', '🕊️ 和事佬', '🌀 彈性處理'],
+            desc: '你是班上的潤滑劑！在各項特質中你沒有極端傾向，能夠因應不同情況靈活調整。在學業上既有規劃也有隨興的一面，在人際上能兼顧朋友和家庭。這種彈性使你在分組合作中往往是重要的協調者，能理解不同立場的人。',
+            advice: {
+                academic: '你的適應力很強，無論是理科、文科或藝術科都能找到樂趣。建議可以多探索不同領域，從中發掘自己真正熱愛的方向。',
+                social: '你擅長調解衝突，但有時過度迎合他人可能讓自己疲憊。記得也要照顧自己的需求，適時表達自己的想法。',
+                emotion: '你的情緒相對穩定，這是很大的優勢。當感到壓力時，可以運用你彈性的特質，嘗試不同的放鬆方式。'
+            }
+        }, {
+            id: '保守型跟隨者',
+            tags: ['🛡️ 安全第一', '👀 觀察者', '🏠 家庭至上', '🤫 低調行事'],
+            desc: '你傾向於選擇最安全、最熟悉的路徑。在學業上，你偏好跟隨老師的指示和既定的框架，不喜歡冒險嘗試未知的事物。你非常重視家庭意見，在群體中通常較為低調，傾向觀察多於主動出擊。',
+            advice: {
+                academic: '你適合有明確指引和標準答案的學科。建議可以嘗試在安全的範圍內，給自己一些小小的挑戰，例如嘗試回答課堂上較難的問題，逐步建立自信。',
+                social: '你可能是個很好的聆聽者，但有時你的聲音也值得被聽見。試著在小組中分享你的想法，你會發現別人也重視你的意見。',
+                emotion: '當面對改變時（如升班、新環境），你容易感到不安。可以提前做好準備，例如事先了解新課程內容，有助減低焦慮。'
+            }
+        }, {
+            id: '衝動型行動派',
+            tags: ['💥 即興王', '🤜 兄弟義氣', '🎯 想做就做', '⏳ 拖延症候群'],
+            desc: '你是典型的行動派！想到什麼就做什麼，不喜歡被計劃束縛。你非常重視朋友，經常為了朋友而改變自己的行程。在學業上，你傾向於臨時抱佛腳，但有時卻能出奇制勝。',
+            advice: {
+                academic: '你的即時反應和應變能力很強，適合需要快速決策的領域。建議可以為自己設立一些「最低限度」的計劃，例如每天至少溫習30分鐘，避免全部累積到最後一刻。',
+                social: '你是朋友眼中的開心果，但有時你的衝動可能讓較謹慎的朋友感到困擾。學習在行動前多想一秒，能減少不必要的誤會。',
+                emotion: '你的情緒來得快去得也快，這是你的魅力所在。當感到壓力時，運動或與朋友聊天是最好的宣洩方式。'
+            }
+        }, {
+            id: '完美型規劃師',
+            tags: ['📋 控制狂', '🎯 目標為本', '⏰ 時間管理大師', '🧠 策略家'],
+            desc: '你對自己有極高的要求，凡事都喜歡事先規劃、仔細安排。在學業上，你追求完美的成績，會為每個科目制定詳細的溫習時間表。你有很強的自我管理能力，但有時會因為過度追求完美而感到壓力。',
+            advice: {
+                academic: '你的規劃能力是你的最大優勢，非常適合需要長期投入的學科。建議在計劃中加入「緩衝時間」，應對突發情況，避免因為一個小失誤而影響整天的情緒。',
+                social: '在團隊合作中，你往往是可靠的領導者。但有時你的高標準可能給組員帶來壓力，學習欣賞別人的付出，即使未達你的標準也值得肯定。',
+                emotion: '當事情不如計劃時，你容易感到挫折。學習接受「不完美」，告訴自己「已完成」比「完美」更重要，能讓你更輕鬆地面對挑戰。'
+            }
+        }, {
+            id: '熱血型助人者',
+            tags: ['❤️ 正義使者', '🦸 挺身而出', '🤝 樂於助人', '🔥 滿腔熱血'],
+            desc: '你是校園中的正義使者！你見不得別人受委屈，即使要冒險也會為弱勢發聲。你非常重視公平和互助，願意犧牲自己的時間和利益去幫助他人。你的熱情和勇氣，是身邊同學的重要依靠。',
+            advice: {
+                academic: '你適合與人相關的學科，如社會科學、教育、心理學等。建議在幫助別人的同時，也要照顧自己的學業進度，避免因為過度投入義工或助人活動而影響成績。',
+                social: '你的善良和勇敢贏得許多朋友的信任。但有時你的正義感可能讓你在不明情況時過早介入，學習先了解事情全貌再行動，能更有效地幫助他人。',
+                emotion: '你容易因為他人的困境而感到難過，這是你的同理心。但記得要設立情緒界線，照顧好自己的心情，才能持續幫助更多人。'
+            }
+        }, {
+            id: '依賴型乖寶寶',
+            tags: ['👶 阿媽嘅心肝', '🏠 宅在家', '🛡️ 安全地帶', '🤱 需要依靠'],
+            desc: '你非常依賴家人的支持和保護，面對新環境或挑戰時，第一時間會尋求家人的意見和幫助。你喜歡待在熟悉的環境，不喜歡冒險。在學業上，你傾向於跟隨別人的步伐，較少主動探索。',
+            advice: {
+                academic: '你適合有清晰指引和固定進度的學習方式。建議逐步培養自主學習的能力，例如從每天自己規劃一小時的溫習開始，慢慢建立獨立性。',
+                social: '你可能比較慢熱，需要較長時間才能適應新朋友。可以嘗試參加一些有明確結構的課外活動（如棋藝組、手工組），在熟悉的活動中自然結交朋友。',
+                emotion: '當家人不在身邊時（如學校旅行、戶外活動），你容易感到不安。可以提前與家人約定聯絡時間，或在背包裡放一件有家人味道的小物品，給你安全感。'
+            }
+        }];
+
+        // ================================================================
+        //  4. 全域狀態
+        // ================================================================
+        let state = {
+            page: 'home',
+            currentQ: 0,
+            answers: [],
+            studentName: '',
+            isTyping: false,
+            typeTimer: null,
+            gender: 'boy',
+            outfit: 'summer',
+            items: [],
+            unlockedCostumes: [],
+            sceneFrame: 0,
+            animId: null,
+            jumpFrame: 0,
+            isJumping: false,
+            questionTyped: false,
+            isWaitingForNext: false,
+        };
+
+        // ================================================================
+        //  5. 特質對應
+        // ================================================================
+        const TRAIT_PAIRS = [
+            { left: '安全感', right: '冒險感' },
+            { left: '學習力', right: '創造力' },
+            { left: '規劃性', right: '隨興性' },
+            { left: '朋友為重', right: '家庭為重' },
+            { left: '顧己', right: '利他' }
+        ];
+
+        const TRAIT_QUESTIONS = {
+            '安全感': [0, 2, 5, 7],
+            '冒險感': [0, 2, 5, 7],
+            '學習力': [1, 3, 6, 9],
+            '創造力': [1, 3, 6, 9],
+            '規劃性': [0, 3, 6, 8],
+            '隨興性': [0, 3, 6, 8],
+            '朋友為重': [2, 4, 8, 9],
+            '家庭為重': [2, 4, 8, 9],
+            '顧己': [1, 4, 5, 7],
+            '利他': [1, 4, 5, 7]
+        };
+
+        // ================================================================
+        //  6. DOM 參考
+        // ================================================================
+        const canvas = document.getElementById('pixelCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        const dynamicContent = document.getElementById('dynamicContent');
+        const rightPanel = document.getElementById('rightPanel');
+        const headerStatus = document.getElementById('headerStatus');
+        const itemDisplay = document.getElementById('itemDisplay');
+
+        // ================================================================
+        //  7. 像素場景繪製 (精簡版 - 保留核心場景)
+        // ================================================================
+        const W = 640,
+            H = 480;
+
+        const COLORS = {
+            sky1: '#b5d4e8',
+            sky2: '#d4e8f5',
+            grass1: '#8ab87a',
+            grass2: '#7aaa6a',
+            grass3: '#6a9a5a',
+            pink: '#f5c8c8',
+            peach: '#f5d8b8',
+            lavender: '#d4c8e8',
+            mint: '#b8e8c8',
+            yellow: '#f5e8a8',
+            orange: '#e8b86a',
+            blue: '#7ab0c8',
+            blue2: '#5a9ab5',
+            red: '#d46a6a',
+            brown: '#8a7a6a',
+            brown2: '#6a5a4a',
+            white: '#f5f0e8',
+            cream: '#f5ede4',
+            dark: '#2d2d2d',
+            gold: '#d4b84a',
+        };
+
+        function drawScene(stage, frame) {
+            ctx.clearRect(0, 0, W, H);
+
+            // 簡化版：每個場景只繪製核心背景和角色
+            drawSkyAndGround();
+            drawClouds(frame);
+            drawSceneElements(stage, frame);
+
+            // 畫角色
+            const charX = 320 + Math.sin(frame * 0.02) * 4;
+            const charY = 380 + (state.isJumping ? -Math.sin(state.jumpFrame * 0.12) * 40 : Math.sin(frame * 0.03) * 2);
+            drawCharacter(ctx, charX, charY, frame);
+        }
+
+        function drawSkyAndGround() {
+            const grad = ctx.createLinearGradient(0, 0, 0, H);
+            grad.addColorStop(0, COLORS.sky1);
+            grad.addColorStop(0.55, COLORS.sky2);
+            grad.addColorStop(0.78, COLORS.grass1);
+            grad.addColorStop(1, COLORS.grass2);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = COLORS.grass3;
+            for (let i = 0; i < 40; i++) {
+                ctx.fillRect(i * 18 + (i % 3) * 4, H - 20 - (i % 2) * 3, 4, 6 + (i % 3) * 2);
+            }
+        }
+
+        function drawClouds(frame) {
+            const clouds = [
+                [40, 30, 80, 20, 0.08],
+                [160, 50, 100, 16, 0.06],
+                [380, 20, 70, 18, 0.10],
+                [520, 55, 90, 14, 0.07]
+            ];
+            clouds.forEach((c, i) => {
+                const x = (c[0] + i * 80 + frame * c[4]) % 720 - 80;
+                const y = c[1] + Math.sin(frame * 0.02 + i) * 4;
+                ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                ctx.fillRect(x, y, c[2], c[3]);
+                ctx.fillRect(x + 18, y - 10, c[2] - 36, 14);
+                ctx.fillRect(x + 36, y - 18, c[2] - 64, 10);
+            });
+        }
+
+        function drawSceneElements(stage, frame) {
+            // 簡化場景元素 - 每個場景畫一些代表性物件
+            const elements = {
+                'classroom': () => {
+                    ctx.fillStyle = COLORS.cream;
+                    ctx.fillRect(0, 0, W, H - 60);
+                    ctx.fillStyle = '#1a2a2a';
+                    ctx.fillRect(40, 20, 320, 110);
+                    ctx.fillStyle = '#2a4a4a';
+                    ctx.fillRect(44, 24, 312, 102);
+                    ctx.fillStyle = '#d4d4c0';
+                    ctx.font = '18px "Courier New", monospace';
+                    ctx.fillText('📖 燕京書院', 80, 58);
+                    ctx.fillStyle = '#d4c5b2';
+                    for (let i = 0; i < 3; i++) {
+                        ctx.fillRect(80 + i * 110, H - 120, 70, 8);
+                    }
+                },
+                'camp': () => {
+                    ctx.fillStyle = '#3a5a3a';
+                    for (let i = 0; i < 6; i++) {
+                        const x = 20 + i * 90;
+                        const y = H - 80 - Math.sin(i * 1.1) * 40;
+                        ctx.fillRect(x + 4, y + 10, 6, 30);
+                        ctx.fillRect(x - 16, y - 12, 36, 26);
+                    }
+                    ctx.fillStyle = '#6a8a4a';
+                    ctx.fillRect(380, H - 110, 100, 50);
+                    ctx.fillStyle = '#6a4a2a';
+                    ctx.fillRect(280, H - 50, 40, 12);
+                    ctx.fillStyle = '#e8a040';
+                    ctx.fillRect(292, H - 70, 16, 20);
+                },
+                'forest': () => {
+                    for (let i = 0; i < 8; i++) {
+                        const x = 10 + i * 70;
+                        const y = H - 70 - Math.sin(i * 0.7) * 50;
+                        ctx.fillStyle = '#3a5a3a';
+                        ctx.fillRect(x + 3, y + 10, 6, 30);
+                        ctx.fillStyle = '#2a6a2a';
+                        ctx.fillRect(x - 18, y - 12, 40, 28);
+                    }
+                    ctx.fillStyle = '#d4b84a';
+                    ctx.beginPath();
+                    ctx.arc(580, 40, 30, 0, Math.PI * 2);
+                    ctx.fill();
+                },
+                'library': () => {
+                    for (let i = 0; i < 4; i++) {
+                        const x = 20 + i * 140;
+                        ctx.fillStyle = '#6a5a4a';
+                        ctx.fillRect(x, 30, 100, 200);
+                        ctx.fillStyle = '#8a7a6a';
+                        for (let j = 0; j < 3; j++) {
+                            ctx.fillRect(x + 4, 36 + j * 48, 92, 40);
+                            for (let k = 0; k < 5; k++) {
+                                ctx.fillStyle = ['#c45a5a', '#4a7a9a', '#6b9e6b', '#d4b84a', '#f5c8c8'][(j + k) % 5];
+                                ctx.fillRect(x + 6 + k * 14, 38 + j * 48, 10, 32);
+                            }
+                        }
+                    }
+                },
+                'community': () => {
+                    ctx.fillStyle = '#d4c5b2';
+                    ctx.fillRect(40, 40, 480, 260);
+                    ctx.fillStyle = '#c8b8a8';
+                    ctx.fillRect(44, 44, 472, 252);
+                    for (let i = 0; i < 3; i++) {
+                        for (let j = 0; j < 2; j++) {
+                            ctx.fillStyle = '#8cb3d1';
+                            ctx.fillRect(70 + i * 150, 60 + j * 100, 80, 60);
+                        }
+                    }
+                    ctx.fillStyle = '#6a4a3a';
+                    ctx.fillRect(260, 260, 60, 40);
+                    ctx.fillStyle = '#c45a5a';
+                    ctx.font = '28px "Courier New", monospace';
+                    ctx.fillText('❤️', 540, 80);
+                },
+                'playground': () => {
+                    ctx.fillStyle = '#8a7a6a';
+                    for (let i = 0; i < 20; i++) {
+                        ctx.fillRect(10 + i * 22, H - 55, 4, 20);
+                    }
+                    ctx.fillStyle = '#6a5a4a';
+                    ctx.fillRect(180, H - 130, 6, 70);
+                    ctx.fillRect(260, H - 130, 6, 70);
+                    ctx.fillRect(180, H - 134, 86, 8);
+                    ctx.fillStyle = '#c45a5a';
+                    ctx.fillRect(300, H - 130, 6, 70);
+                    ctx.fillStyle = '#4a7a9a';
+                    ctx.fillRect(306, H - 40, 60, 6);
+                },
+                'classroom_group': () => {
+                    ctx.fillStyle = '#f5f0e8';
+                    ctx.fillRect(30, 20, 280, 100);
+                    ctx.fillStyle = '#e8e0d8';
+                    ctx.fillRect(34, 24, 272, 92);
+                    ctx.fillStyle = COLORS.dark;
+                    ctx.font = '14px "Courier New", monospace';
+                    ctx.fillText('📊 小組報告進度', 60, 52);
+                    ctx.fillStyle = '#6a5a4a';
+                    ctx.beginPath();
+                    ctx.arc(440, 250, 80, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#8a7a6a';
+                    ctx.beginPath();
+                    ctx.arc(440, 250, 66, 0, Math.PI * 2);
+                    ctx.fill();
+                },
+                'classroom_teacher': () => {
+                    ctx.fillStyle = '#1a2a2a';
+                    ctx.fillRect(20, 20, 400, 130);
+                    ctx.fillStyle = '#2a4a4a';
+                    ctx.fillRect(24, 24, 392, 122);
+                    ctx.fillStyle = '#d4d4c0';
+                    ctx.font = '18px "Courier New", monospace';
+                    ctx.fillText('📝 課堂進行中', 60, 60);
+                    ctx.fillStyle = '#6a5a4a';
+                    ctx.fillRect(30, 160, 80, 50);
+                    for (let i = 0; i < 3; i++) {
+                        ctx.fillStyle = '#b8a090';
+                        ctx.fillRect(200 + i * 120, H - 80, 80, 8);
+                    }
+                },
+                'home': () => {
+                    ctx.fillStyle = '#e8ddd0';
+                    ctx.fillRect(0, 0, W, H - 50);
+                    ctx.fillStyle = '#6a4a3a';
+                    ctx.fillRect(40, H - 110, 160, 50);
+                    ctx.fillStyle = '#7a5a4a';
+                    ctx.fillRect(44, H - 116, 152, 12);
+                    ctx.fillStyle = COLORS.dark;
+                    ctx.fillRect(240, H - 130, 120, 80);
+                    ctx.fillStyle = '#4a6a8a';
+                    ctx.fillRect(244, H - 126, 112, 72);
+                    ctx.fillStyle = '#d4b84a';
+                    ctx.beginPath();
+                    ctx.arc(430, H - 30, 28, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#c45a5a';
+                    ctx.beginPath();
+                    ctx.arc(424, H - 38, 14, 0, Math.PI * 2);
+                    ctx.fill();
+                },
+                'graduation': () => {
+                    ctx.fillStyle = '#6a5a4a';
+                    ctx.fillRect(120, 40, 24, 300);
+                    ctx.fillRect(496, 40, 24, 300);
+                    ctx.fillRect(120, 40, 400, 24);
+                    ctx.fillStyle = '#4a6a3a';
+                    ctx.font = '24px "Courier New", monospace';
+                    ctx.fillText('🎓 燕京書院', 200, 108);
+                    for (let i = 0; i < 8; i++) {
+                        const x = 40 + i * 60;
+                        const y = 20 + Math.sin(i * 0.9) * 20;
+                        ctx.fillStyle = ['#c45a5a', '#4a8a4a', '#4a7a9a', '#d4b84a', '#f5c8c8', '#6a9a7a'][i % 6];
+                        ctx.beginPath();
+                        ctx.ellipse(x, y, 16, 22, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = COLORS.dark;
+                        ctx.fillRect(x - 1, y + 22, 2, 30);
+                    }
+                    ctx.fillStyle = '#f5efe6';
+                    ctx.fillRect(340, 200, 160, 80);
+                    ctx.fillStyle = COLORS.dark;
+                    ctx.font = '14px "Courier New", monospace';
+                    ctx.fillText('📜 DSE 成績', 370, 224);
+                    ctx.font = '18px "Courier New", monospace';
+                    ctx.fillText('🌟🌟🌟', 380, 254);
+                },
+                'result': () => {
+                    drawSceneElements['graduation']();
+                    for (let i = 0; i < 20; i++) {
+                        const x = (i * 37 + frame * 0.6) % 640;
+                        const y = (i * 23 + frame * 0.4) % 480;
+                        ctx.fillStyle = ['#c45a5a', '#4a8a4a', '#4a7a9a', '#d4b84a', '#f5c8c8'][i % 5];
+                        ctx.fillRect(x, y, 6, 6);
+                    }
+                    ctx.fillStyle = '#ffd700';
+                    ctx.font = '44px "Courier New", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('⭐', 320, 70);
+                    ctx.textAlign = 'left';
+                },
+                'home_custom': () => {
+                    ctx.fillStyle = '#d4c5b2';
+                    ctx.fillRect(60, 60, 520, 240);
+                    ctx.fillStyle = '#c8b8a8';
+                    ctx.fillRect(64, 64, 512, 232);
+                    for (let i = 0; i < 3; i++) {
+                        for (let j = 0; j < 2; j++) {
+                            ctx.fillStyle = '#8cb3d1';
+                            ctx.fillRect(90 + i * 130, 80 + j * 90, 80, 50);
+                            ctx.fillStyle = '#b8d4e8';
+                            ctx.fillRect(94 + i * 130, 84 + j * 90, 72, 42);
+                        }
+                    }
+                    ctx.fillStyle = '#6a4a3a';
+                    ctx.fillRect(280, 260, 80, 40);
+                    ctx.fillStyle = COLORS.dark;
+                    ctx.font = '22px "Courier New", monospace';
+                    ctx.fillText('🏫 燕京書院', 220, 48);
+                    ctx.fillStyle = '#4a6a8a';
+                    ctx.fillRect(160, 300, 320, 20);
+                    ctx.fillStyle = '#f5f0e8';
+                    ctx.font = '12px "Courier New", monospace';
+                    ctx.fillText('✦ 歡迎加入燕京大家庭 ✦', 200, 316);
+                }
+            };
+
+            if (elements[stage]) {
+                elements[stage]();
+            } else {
+                // fallback
+                ctx.fillStyle = '#b5d4e8';
+                ctx.fillRect(0, 0, W, H);
+                ctx.fillStyle = '#6a9a5a';
+                ctx.fillRect(0, H - 60, W, 60);
+            }
+        }
+
+        // ---- 角色繪製 ----
+        function drawCharacter(ctx, x, y, frame) {
+            const gender = state.gender || 'boy';
+            const outfit = state.outfit || 'summer';
+
+            const scale = 2.2;
+            const bx = x - 18 * scale;
+            const by = y - 36 * scale;
+
+            ctx.fillStyle = 'rgba(0,0,0,0.12)';
+            ctx.beginPath();
+            ctx.ellipse(x, y + 14, 26 * scale, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            let shirtColor, pantsColor;
+            if (outfit === 'summer') {
+                if (gender === 'boy') {
+                    shirtColor = '#f5f0e8';
+                    pantsColor = '#6a8ab5';
+                } else {
+                    shirtColor = '#6a8ab5';
+                    pantsColor = '#6a8ab5';
+                }
+            } else if (outfit === 'winter') {
+                shirtColor = '#2d2d2d';
+                pantsColor = '#1a1a1a';
+            } else if (outfit === 'sport') {
+                shirtColor = '#e88d4a';
+                pantsColor = '#4a6a9a';
+            } else if (outfit === 'scout') {
+                shirtColor = '#4a7a3a';
+                pantsColor = '#3a5a2a';
+            } else if (outfit === 'stjohn') {
+                shirtColor = '#c45a5a';
+                pantsColor = '#2d2d2d';
+            } else {
+                shirtColor = '#f5f0e8';
+                pantsColor = '#4a6a8a';
+            }
+
+            ctx.fillStyle = shirtColor;
+            ctx.fillRect(bx + 8 * scale, by + 18 * scale, 24 * scale, 22 * scale);
+            if (gender === 'girl' && outfit === 'summer') {
+                ctx.fillStyle = '#6a8ab5';
+                ctx.fillRect(bx + 8 * scale, by + 38 * scale, 24 * scale, 14 * scale);
+                ctx.fillRect(bx + 4 * scale, by + 40 * scale, 32 * scale, 6 * scale);
+            } else {
+                ctx.fillStyle = pantsColor;
+                ctx.fillRect(bx + 8 * scale, by + 38 * scale, 10 * scale, 16 * scale);
+                ctx.fillRect(bx + 22 * scale, by + 38 * scale, 10 * scale, 16 * scale);
+            }
+
+            if (outfit === 'winter') {
+                ctx.fillStyle = '#4a4a6a';
+                ctx.fillRect(bx + 17 * scale, by + 18 * scale, 6 * scale, 14 * scale);
+                ctx.fillRect(bx + 14 * scale, by + 16 * scale, 12 * scale, 6 * scale);
+            }
+
+            ctx.fillStyle = '#f5d0b0';
+            ctx.fillRect(bx + 8 * scale, by - 2 * scale, 24 * scale, 20 * scale);
+
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(bx + 4 * scale, by - 6 * scale, 32 * scale, 8 * scale);
+            ctx.fillRect(bx + 2 * scale, by + 2 * scale, 6 * scale, 8 * scale);
+            ctx.fillRect(bx + 32 * scale, by + 2 * scale, 6 * scale, 8 * scale);
+            if (gender === 'girl') {
+                ctx.fillRect(bx + 2 * scale, by + 8 * scale, 4 * scale, 8 * scale);
+                ctx.fillRect(bx + 34 * scale, by + 8 * scale, 4 * scale, 8 * scale);
+            }
+
+            ctx.fillStyle = '#f5f0e8';
+            ctx.fillRect(bx + 10 * scale, by + 6 * scale, 8 * scale, 8 * scale);
+            ctx.fillRect(bx + 22 * scale, by + 6 * scale, 8 * scale, 8 * scale);
+            ctx.fillStyle = '#1a1a1a';
+            const eyeOff = Math.sin(frame * 0.04) * 1.5;
+            ctx.fillRect(bx + 12 * scale + eyeOff, by + 8 * scale, 4 * scale, 4 * scale);
+            ctx.fillRect(bx + 24 * scale + eyeOff, by + 8 * scale, 4 * scale, 4 * scale);
+
+            ctx.fillStyle = '#c45a5a';
+            ctx.fillRect(bx + 14 * scale, by + 16 * scale, 12 * scale, 3 * scale);
+
+            const armSwing = Math.sin(frame * 0.08) * 6 * scale;
+            ctx.fillStyle = '#f5d0b0';
+            ctx.fillRect(bx - 2 * scale, by + 20 * scale + armSwing, 8 * scale, 14 * scale);
+            ctx.fillRect(bx + 34 * scale, by + 20 * scale - armSwing, 8 * scale, 14 * scale);
+
+            const legOff = Math.sin(frame * 0.1) * 4 * scale;
+            ctx.fillStyle = '#2d2d2d';
+            ctx.fillRect(bx + 8 * scale, by + 54 * scale + legOff, 8 * scale, 10 * scale);
+            ctx.fillRect(bx + 24 * scale, by + 54 * scale - legOff, 8 * scale, 10 * scale);
+
+            if (state.page === 'quiz' || state.page === 'home') {
+                ctx.fillStyle = '#5a3a2a';
+                ctx.fillRect(bx + 28 * scale, by + 20 * scale, 10 * scale, 20 * scale);
+                ctx.fillRect(bx + 26 * scale, by + 18 * scale, 14 * scale, 6 * scale);
+                ctx.fillStyle = '#4a2a1a';
+                ctx.fillRect(bx + 30 * scale, by + 24 * scale, 6 * scale, 12 * scale);
+            }
+        }
+
+        // ================================================================
+        //  8. 道具彈窗
+        // ================================================================
+        function showItemPopup(item, callback) {
+            const overlay = document.createElement('div');
+            overlay.className = 'item-popup-overlay';
+            overlay.innerHTML = `
+                <div class="item-popup">
+                    <span class="item-icon">${item.icon}</span>
+                    <div class="item-name">✦ ${item.name} ✦</div>
+                    <div class="item-desc">${item.desc}</div>
+                    <button class="pixel-btn primary" id="popupConfirmBtn">繼續 ➜</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            document.getElementById('popupConfirmBtn').addEventListener('click', () => {
+                overlay.remove();
+                if (callback) callback();
+            });
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                    if (callback) callback();
+                }
+            });
+        }
+
+        // ================================================================
+        //  9. 打字機效果
+        // ================================================================
+        function typeWriter(element, text, speed = 50, callback) {
+            if (state.isTyping) {
+                clearTimeout(state.typeTimer);
+                state.isTyping = false;
+            }
+            state.isTyping = true;
+            let index = 0;
+            element.textContent = '';
+            element.style.visibility = 'visible';
+
+            function typeChar() {
+                if (index < text.length) {
+                    element.textContent += text.charAt(index);
+                    index++;
+                    rightPanel.scrollTop = rightPanel.scrollHeight;
+                    state.typeTimer = setTimeout(typeChar, speed);
+                } else {
+                    state.isTyping = false;
+                    element.innerHTML += '<span class="cursor-blink"></span>';
+                    if (callback) callback();
+                }
+            }
+            typeChar();
+        }
+
+        function stopTyping() {
+            if (state.typeTimer) {
+                clearTimeout(state.typeTimer);
+                state.typeTimer = null;
+            }
+            state.isTyping = false;
+        }
+
+        // ================================================================
+        //  10. 渲染函數
+        // ================================================================
+
+        function renderHome() {
+            state.page = 'home';
+            stopTyping();
+            dynamicContent.innerHTML = `
+                <div id="homePage">
+                    <div class="title-lg">🎮 你準備好開啟<br>燕京生活了嗎？</div>
+                    <div class="name-input-area">
+                        <input type="text" id="nameInput" placeholder="請輸入你的姓名..." maxlength="20">
+                        <button class="pixel-btn primary" id="startBtn">▶ 開始</button>
+                    </div>
+                    <div class="customize-area">
+                        <div class="customize-group">
+                            <label>👤 性別</label>
+                            <div class="options">
+                                <button class="opt-btn active" data-group="gender" data-value="boy">👦 男</button>
+                                <button class="opt-btn" data-group="gender" data-value="girl">👧 女</button>
+                            </div>
+                        </div>
+                        <div class="customize-group">
+                            <label>👕 校服</label>
+                            <div class="options">
+                                <button class="opt-btn active" data-group="outfit" data-value="summer">夏季</button>
+                                <button class="opt-btn" data-group="outfit" data-value="winter">冬季</button>
+                                <button class="opt-btn" data-group="outfit" data-value="sport">運動</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.7rem; color:#6a5a4a; margin-top:6px;">🌟 10條情境題 · 找出你的性格原型</div>
+                </div>
+            `;
+
+            document.querySelectorAll('.opt-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const group = this.dataset.group;
+                    const value = this.dataset.value;
+                    document.querySelectorAll(`.opt-btn[data-group="${group}"]`).forEach(b => b.classList.remove(
+                    'active'));
+                    this.classList.add('active');
+                    state[group] = value;
+                    if (state.page === 'home') {
+                        drawScene('home_custom', state.sceneFrame);
+                    }
+                });
+            });
+
+            document.getElementById('startBtn').addEventListener('click', startQuiz);
+            document.getElementById('nameInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') startQuiz();
+            });
+
+            document.getElementById('nameInput').focus();
+            drawScene('home_custom', 0);
+            if (state.animId) cancelAnimationFrame(state.animId);
+            animateScene('home_custom');
+            headerStatus.textContent = '🏠 首頁';
+            itemDisplay.textContent = '-';
+        }
+
+        function startQuiz() {
+            const input = document.getElementById('nameInput');
+            const name = input.value.trim();
+            if (!name) {
+                alert('請先輸入你的姓名！ ✏️');
+                input.focus();
+                return;
+            }
+            state.studentName = name;
+            state.answers = QUESTIONS.map((q) => ({ qId: q.id, optionIndex: null, scores: {} }));
+            state.items = [];
+            state.unlockedCostumes = [];
+            state.currentQ = 0;
+            itemDisplay.textContent = '-';
+            state.questionTyped = false;
+            renderQuestion(0);
+        }
+
+        function renderQuestion(index) {
+            state.page = 'quiz';
+            stopTyping();
+            const q = QUESTIONS[index];
+            const total = QUESTIONS.length;
+            const pct = Math.round(((index + 1) / total) * 100);
+
+            let optionsHtml = '';
+            q.options.forEach((opt, i) => {
+                const selected = (state.answers[index].optionIndex === i) ? 'selected' : '';
+                optionsHtml += `
+                    <div class="option-btn ${selected}" data-optindex="${i}">
+                        <span class="label">${opt.label}</span>
+                        <span>${opt.text}</span>
+                    </div>
+                `;
+            });
+
+            const stageEmoji = {
+                '中一': '📚',
+                '中二/中三': '🎯',
+                '中四': '💪',
+                '中五': '📝',
+                '中六': '🎓'
+            };
+
+            dynamicContent.innerHTML = `
+                <div style="display:flex; flex-direction:column; height:100%;">
+                    <div class="progress-area">
+                        <span class="progress-text">${index+1}/${total}</span>
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width:${pct}%;"></div>
+                        </div>
+                        <span class="progress-text">${pct}%</span>
+                    </div>
+                    <div style="font-size:0.65rem; color:#6a5a4a; margin-bottom:4px;">
+                        ${stageEmoji[q.stage] || ''} ${q.stage}
+                    </div>
+                    <div style="font-weight:bold; font-size:1rem; margin-bottom:12px; line-height:1.5;" class="typewriter" id="questionText"></div>
+                    <div class="option-grid" id="optionGrid">
+                        ${optionsHtml}
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:auto; flex-wrap:wrap;">
+                        <button class="pixel-btn secondary" id="prevBtn" ${index===0?'disabled':''}>◀ 上一題</button>
+                        <button class="pixel-btn primary" id="nextBtn" style="margin-left:auto;">
+                            ${index===total-1 ? '📊 完成' : '下一題 ▶'}
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            const qTextEl = document.getElementById('questionText');
+            if (qTextEl) {
+                typeWriter(qTextEl, q.text, 50);
+            }
+
+            document.querySelectorAll('.option-btn').forEach(el => {
+                el.addEventListener('click', function() {
+                    const idx = parseInt(this.dataset.optindex);
+                    selectOption(index, idx);
+                });
+            });
+
+            document.getElementById('prevBtn').addEventListener('click', () => {
+                if (index > 0) {
+                    if (state.items.length > 0) state.items.pop();
+                    renderQuestion(index - 1);
+                }
+            });
+
+            document.getElementById('nextBtn').addEventListener('click', () => {
+                if (state.answers[index].optionIndex === null) {
+                    alert('請先選擇一個選項！ 😊');
+                    return;
+                }
+                const qData = QUESTIONS[index];
+                const optIdx = state.answers[index].optionIndex;
+                const selectedOpt = qData.options[optIdx];
+                const item = selectedOpt.item;
+                if (!state.items.some(i => i.name === item.name)) {
+                    state.items.push(item);
+                    updateInventory();
+                    showItemPopup(item, () => {
+                        if (index === total - 1) {
+                            const allDone = state.answers.every(a => a.optionIndex !== null);
+                            if (!allDone) {
+                                alert('還有題目未作答，請完成全部10題！ 📝');
+                                return;
+                            }
+                            showResult();
+                        } else {
+                            renderQuestion(index + 1);
+                        }
+                    });
+                } else {
+                    if (index === total - 1) {
+                        const allDone = state.answers.every(a => a.optionIndex !== null);
+                        if (!allDone) {
+                            alert('還有題目未作答，請完成全部10題！ 📝');
+                            return;
+                        }
+                        showResult();
+                    } else {
+                        renderQuestion(index + 1);
+                    }
+                }
+            });
+
+            drawScene(q.scene, state.sceneFrame);
+            if (state.animId) cancelAnimationFrame(state.animId);
+            animateScene(q.scene);
+            headerStatus.textContent = `📖 第 ${index+1}/${total} 題 · ${q.stage}`;
+            rightPanel.scrollTop = 0;
+        }
+
+        function selectOption(qIndex, optIndex) {
+            const q = QUESTIONS[qIndex];
+            const scores = q.options[optIndex].scores;
+            state.answers[qIndex].optionIndex = optIndex;
+            state.answers[qIndex].scores = { ...scores };
+            renderQuestion(qIndex);
+        }
+
+        function updateInventory() {
+            const icons = state.items.map(item => item.icon).join(' ');
+            itemDisplay.textContent = icons || '-';
+        }
+
+        // ================================================================
+        //  11. 結果頁
+        // ================================================================
+        function showResult() {
+            state.page = 'result';
+            stopTyping();
+
+            const rawScores = {};
+            const allTraits = ['安全感', '冒險感', '學習力', '創造力', '規劃性', '隨興性', '朋友為重', '家庭為重', '顧己', '利他'];
+            allTraits.forEach(t => rawScores[t] = 0);
+
+            state.answers.forEach(ans => {
+                if (ans.optionIndex !== null) {
+                    for (let key in ans.scores) {
+                        rawScores[key] += ans.scores[key];
+                    }
+                }
+            });
+
+            const finalScores = {};
+            TRAIT_PAIRS.forEach(pair => {
+                const left = pair.left,
+                    right = pair.right;
+                let leftTotal = 0,
+                    rightTotal = 0;
+                const qIndices = TRAIT_QUESTIONS[left] || [];
+                qIndices.forEach(qi => {
+                    const ans = state.answers[qi];
+                    if (ans.optionIndex !== null) {
+                        const scores = ans.scores;
+                        if (scores[left]) leftTotal += scores[left];
+                        if (scores[right]) rightTotal += scores[right];
+                    }
+                });
+                const sum = leftTotal + rightTotal;
+                if (sum === 0) {
+                    finalScores[left] = 8;
+                    finalScores[right] = 8;
+                } else {
+                    finalScores[left] = Math.round((leftTotal / sum) * 16);
+                    finalScores[right] = 16 - finalScores[left];
+                }
+                finalScores[left] = Math.max(0, Math.min(16, finalScores[left]));
+                finalScores[right] = 16 - finalScores[left];
+            });
+            allTraits.forEach(t => { if (!(t in finalScores)) finalScores[t] = 8; });
+
+            const proto = getPrototype(finalScores);
+
+            const q6Answer = state.answers[5];
+            const isBullyChoice = (q6Answer.optionIndex === 3);
+
+            const q3Ans = state.answers[2];
+            const q6Ans = state.answers[5];
+            if (q3Ans.optionIndex === 0 || q3Ans.optionIndex === 1) {
+                if (!state.unlockedCostumes.includes('scout')) {
+                    state.unlockedCostumes.push('scout');
+                }
+            }
+            if (q6Ans.optionIndex === 1 || q6Ans.optionIndex === 2) {
+                if (!state.unlockedCostumes.includes('stjohn')) {
+                    state.unlockedCostumes.push('stjohn');
+                }
+            }
+
+            let barsHtml = '';
+            TRAIT_PAIRS.forEach(pair => {
+                const left = pair.left,
+                    right = pair.right;
+                const lVal = finalScores[left] || 0;
+                const rVal = finalScores[right] || 0;
+                const lPct = (lVal / 16) * 100;
+                const rPct = (rVal / 16) * 100;
+                barsHtml += `
+                    <div class="trait-bar-row">
+                        <span class="tlabel">${left}</span>
+                        <span class="trait-score">${lVal}</span>
+                        <div class="trait-bar-track">
+                            <div class="trait-bar-fill-left" style="width:${lPct}%;"></div>
+                            <div class="trait-bar-fill-right" style="width:${rPct}%;"></div>
+                        </div>
+                        <span class="trait-score">${rVal}</span>
+                        <span class="tlabel right">${right}</span>
+                    </div>
+                `;
+            });
+
+            let itemBadges = '';
+            state.items.forEach(item => {
+                itemBadges += `<span class="item-badge">${item.icon} ${item.name}</span>`;
+            });
+
+            let costumeHtml = '';
+            if (state.unlockedCostumes.length > 0) {
+                const costumeMap = { 'scout': '童軍制服', 'stjohn': '聖約翰救傷隊制服' };
+                const names = state.unlockedCostumes.map(c => costumeMap[c] || c).join('、');
+                costumeHtml = `
+                    <div class="costume-unlock">
+                        🎉 解鎖隱藏服裝：<strong>${names}</strong>！<br>
+                        <span style="font-size:0.7rem;">你嘅選擇展現出特別嘅特質，獲得呢啲制服作為獎勵！</span>
+                    </div>
+                `;
+            }
+
+            let logHtml = '';
+            QUESTIONS.forEach((q, idx) => {
+                const ans = state.answers[idx];
+                let choiceText = '未作答';
+                if (ans.optionIndex !== null) {
+                    const opt = q.options[ans.optionIndex];
+                    const item = opt.item;
+                    choiceText = opt.label + '. ' + opt.text.substring(0, 20) + (opt.text.length > 20 ? '...' : '') +
+                        ` [${item.icon}]`;
+                }
+                logHtml += `<div class="log-item"><strong>Q${idx+1}</strong> ${choiceText}</div>`;
+            });
+
+            let careHtml = '';
+            if (isBullyChoice) {
+                careHtml = `
+                    <div class="care-note">
+                        ⚠️ <strong>關懷提示：</strong>你嘅選擇反映你當下可能感到不安或害怕。如果你喺校園遇到困難或壓力，記住可以搵老師、輔導員或社工傾訴，你唔係一個人面對嘅。❤️
+                    </div>
+                `;
+            }
+
+            const encouragements = [
+                '你已經很勇敢地面對新挑戰了！', '每一步成長都值得被肯定！',
+                '記住，你從來不是一個人。', '相信自己，你比你想像中更強大！',
+                '燕京書院以你為榮！', '你的獨特之處，就是你的力量！'
+            ];
+            const randomEncourage = encouragements[Math.floor(Math.random() * encouragements.length)];
+
+            const adviceHtml = `
+                <div class="advice-block">
+                    <h4>📖 學業選科面</h4>
+                    <p>${proto.advice.academic}</p>
+                </div>
+                <div class="advice-block">
+                    <h4>🤝 社交與人際面</h4>
+                    <p>${proto.advice.social}</p>
+                </div>
+                <div class="advice-block">
+                    <h4>💖 情緒管理面</h4>
+                    <p>${proto.advice.emotion}</p>
+                </div>
+                <div style="background:#f5ede4; border:3px solid #2d2d2d; padding:8px 12px; margin:4px 0; text-align:center; font-size:0.8rem;">
+                    🌟 ${randomEncourage}
+                </div>
+                <div style="background:#e8ddd0; border:3px solid #2d2d2d; padding:6px 12px; margin:4px 0; text-align:center; font-size:0.7rem;">
+                    🏫 校園資源：若有需要，可隨時找 <strong>老師、社工和輔導員</strong> 聊天 ❤️
+                </div>
+            `;
+
+            dynamicContent.innerHTML = `
+                <div id="resultPage">
+                    <div class="result-title">🎓 ${state.studentName} 嘅中學生活</div>
+
+                    ${costumeHtml}
+
+                    <div class="trait-bar-group">${barsHtml}</div>
+
+                    <div class="proto-box">
+                        <div class="proto-name">🏆 ${proto.id}</div>
+                        <div class="proto-tags">${proto.tags.map(t => `<span>${t}</span>`).join('')}</div>
+                        <p style="margin-top:6px; font-size:0.85rem;">${proto.desc}</p>
+                    </div>
+
+                    ${careHtml}
+                    ${adviceHtml}
+
+                    <div class="inventory-display">
+                        <strong>🎒 道具收藏：</strong>
+                        ${itemBadges || '（尚未獲得任何道具）'}
+                    </div>
+
+                    <div class="answer-log">
+                        <strong>📝 作答記錄</strong>
+                        <div id="answerLogList">${logHtml}</div>
+                    </div>
+
+                    <div style="text-align:center; font-size:0.65rem; color:#6a5a4a; border-top:3px solid #d4c5b2; padding-top:6px; margin-top:4px;">
+                        🏫 中華基督教會燕京書院 · 學生支援部
+                    </div>
+
+                    <div class="result-actions">
+                        <button class="pixel-btn warning" id="retakeBtn">🔄 重新測驗</button>
+                        <button class="pixel-btn primary" id="printBtn">📄 列印/PDF</button>
+                        <button class="pixel-btn secondary" id="saveDriveBtn">💾 儲存到Google Drive</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('retakeBtn').addEventListener('click', () => {
+                if (confirm('重新測驗會清除所有進度，確定嗎？')) resetAll();
+            });
+            document.getElementById('printBtn').addEventListener('click', () => window.print());
+            document.getElementById('saveDriveBtn').addEventListener('click', saveToGoogleDrive);
+
+            if (state.unlockedCostumes.length > 0) {
+                state.outfit = state.unlockedCostumes[0];
+            } else {
+                state.outfit = 'summer';
+            }
+
+            drawScene('result', state.sceneFrame);
+            if (state.animId) cancelAnimationFrame(state.animId);
+            animateScene('result');
+            headerStatus.textContent = '🎉 完成！';
+            rightPanel.scrollTop = 0;
+
+            state.isJumping = true;
+            state.jumpFrame = 0;
+            setTimeout(() => { state.isJumping = false; }, 600);
+        }
+
+        // ================================================================
+        //  12. 原型配對
+        // ================================================================
+        function getPrototype(scores) {
+            const s = scores;
+            const rules = [
+                { id: '穩健型學霸', check: () => s.安全感 >= 12 && s.學習力 >= 12 && s.規劃性 >= 12 },
+                { id: '冒險型創作者', check: () => s.冒險感 >= 12 && s.創造力 >= 12 && s.隨興性 >= 10 },
+                { id: '平衡型協調者', check: () => {
+                        const vals = Object.values(s);
+                        const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+                        return vals.every(v => v >= 5 && v <= 11) && avg >= 6 && avg <= 10;
+                    } },
+                { id: '保守型跟隨者', check: () => s.安全感 >= 12 && s.顧己 >= 10 && s.家庭為重 >= 10 },
+                { id: '衝動型行動派', check: () => s.冒險感 >= 12 && s.隨興性 >= 10 && s.朋友為重 >= 10 },
+                { id: '完美型規劃師', check: () => s.規劃性 >= 12 && s.學習力 >= 10 && s.顧己 >= 10 },
+                { id: '熱血型助人者', check: () => s.利他 >= 12 && s.冒險感 >= 10 && s.朋友為重 >= 10 },
+                { id: '依賴型乖寶寶', check: () => s.安全感 >= 12 && s.家庭為重 >= 12 && s.冒險感 <= 6 },
+            ];
+            for (let rule of rules) {
+                if (rule.check()) {
+                    const found = PROTOTYPES.find(p => p.id === rule.id);
+                    if (found) return found;
+                }
+            }
+            const sorted = Object.entries(s).sort((a, b) => b[1] - a[1]);
+            const top = sorted[0][0];
+            const fallbackMap = {
+                '安全感': '保守型跟隨者',
+                '學習力': '穩健型學霸',
+                '規劃性': '完美型規劃師',
+                '家庭為重': '依賴型乖寶寶',
+                '冒險感': '冒險型創作者',
+                '創造力': '冒險型創作者',
+                '朋友為重': '衝動型行動派',
+                '利他': '熱血型助人者',
+                '顧己': '保守型跟隨者',
+                '隨興性': '衝動型行動派'
+            };
+            const fallbackId = fallbackMap[top] || '平衡型協調者';
+            return PROTOTYPES.find(p => p.id === fallbackId) || PROTOTYPES[2];
+        }
+
+        // ================================================================
+        //  13. Google Drive 儲存 (已更新 URL)
+        // ================================================================
+        function saveToGoogleDrive() {
+            const data = {
+                name: state.studentName,
+                scores: {},
+                prototype: '',
+                answers: state.answers.map((a, idx) => {
+                    const q = QUESTIONS[idx];
+                    return {
+                        qId: q.id,
+                        question: q.text.substring(0, 30) + '...',
+                        option: a.optionIndex !== null ? q.options[a.optionIndex].label : '未答',
+                        text: a.optionIndex !== null ? q.options[a.optionIndex].text : ''
+                    };
+                }),
+                items: state.items.map(i => i.name),
+                unlockedCostumes: state.unlockedCostumes,
+                timestamp: new Date().toISOString()
+            };
+
+            const finalScores = {};
+            TRAIT_PAIRS.forEach(pair => {
+                const left = pair.left,
+                    right = pair.right;
+                let leftTotal = 0,
+                    rightTotal = 0;
+                const qIndices = TRAIT_QUESTIONS[left] || [];
+                qIndices.forEach(qi => {
+                    const ans = state.answers[qi];
+                    if (ans.optionIndex !== null) {
+                        const scores = ans.scores;
+                        if (scores[left]) leftTotal += scores[left];
+                        if (scores[right]) rightTotal += scores[right];
+                    }
+                });
+                const sum = leftTotal + rightTotal;
+                if (sum === 0) {
+                    finalScores[left] = 8;
+                    finalScores[right] = 8;
+                } else {
+                    finalScores[left] = Math.round((leftTotal / sum) * 16);
+                    finalScores[right] = 16 - finalScores[left];
+                }
+                finalScores[left] = Math.max(0, Math.min(16, finalScores[left]));
+                finalScores[right] = 16 - finalScores[left];
+            });
+            data.scores = finalScores;
+            const proto = getPrototype(finalScores);
+            data.prototype = proto.id;
+
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(() => {
+                alert('✅ 數據已成功儲存到 Google Drive！');
+            }).catch((err) => {
+                console.error('儲存失敗:', err);
+                alert('⚠️ 儲存失敗，請檢查網絡連線。');
+            });
+        }
+
+        // ================================================================
+        //  14. 重置 & 動畫
+        // ================================================================
+        function resetAll() {
+            state.currentQ = 0;
+            state.answers = QUESTIONS.map((q) => ({ qId: q.id, optionIndex: null, scores: {} }));
+            state.items = [];
+            state.unlockedCostumes = [];
+            state.studentName = '';
+            state.page = 'home';
+            stopTyping();
+            if (state.animId) cancelAnimationFrame(state.animId);
+            itemDisplay.textContent = '-';
+            renderHome();
+            headerStatus.textContent = '🏫 中華基督教會燕京書院';
+        }
+
+        function animateScene(stage) {
+            let frame = 0;
+
+            function tick() {
+                frame++;
+                state.sceneFrame = frame;
+                if (state.isJumping) {
+                    state.jumpFrame++;
+                    if (state.jumpFrame > 60) {
+                        state.isJumping = false;
+                        state.jumpFrame = 0;
+                    }
+                }
+                drawScene(stage, frame);
+                state.animId = requestAnimationFrame(tick);
+            }
+            tick();
+        }
+
+        // ================================================================
+        //  15. 啟動
+        // ================================================================
+        renderHome();
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                if (state.page === 'result') {
+                    if (confirm('重新測驗？')) resetAll();
+                }
+            }
+        });
+
+        console.log('🎮 燕京生活啟航站 v4.0 已啟動！');
+        console.log('📋 共 ' + QUESTIONS.length + ' 條題目，8 種性格原型');
+        console.log('💾 Google Apps Script URL 已設定');
+        console.log('⌨️ 快捷鍵: 1-4 選項, Enter 下一題, R 重新測驗');
+    </script>
+
+</body>
+</html>
