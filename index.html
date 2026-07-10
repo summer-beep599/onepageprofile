@@ -2,10 +2,16 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>燕京生活啟航站 - 像素冒險</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- 引入 html2canvas 和 jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
     <style>
+        /* ===== 所有樣式保持不變 ===== */
         * {
             margin: 0;
             padding: 0;
@@ -671,6 +677,141 @@
             border: 2px solid #2d2d2d;
         }
 
+        /* ===== 截圖專用容器 (隱藏，僅用於渲染) ===== */
+        #captureContainer {
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            width: 800px;
+            background: #f5ede4;
+            padding: 30px;
+            font-family: 'Courier New', 'PixelFont', monospace;
+            z-index: 9999;
+            border: 8px solid #2d2d2d;
+        }
+
+        #captureContainer .capture-inner {
+            max-width: 100%;
+            background: white;
+            padding: 30px;
+        }
+
+        #captureContainer .capture-header {
+            text-align: center;
+            border-bottom: 4px solid #2d2d2d;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        #captureContainer .capture-header h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        #captureContainer .capture-header .sub {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        #captureContainer .capture-body {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        #captureContainer .capture-left {
+            flex: 0 0 42%;
+            min-width: 200px;
+        }
+
+        #captureContainer .capture-left .pixel-img {
+            width: 100%;
+            border: 4px solid #2d2d2d;
+            image-rendering: pixelated;
+            background: #b5d4e8;
+        }
+
+        #captureContainer .capture-right {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        #captureContainer .capture-right .proto-block {
+            background: #e8ddd0;
+            padding: 12px 16px;
+            border: 4px solid #2d2d2d;
+            margin-bottom: 12px;
+        }
+
+        #captureContainer .capture-right .proto-block .pname {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        #captureContainer .capture-right .proto-block .ptags {
+            font-size: 0.7rem;
+            margin: 4px 0;
+        }
+
+        #captureContainer .capture-right .proto-block .pdesc {
+            font-size: 0.75rem;
+        }
+
+        #captureContainer .capture-right .trait-block {
+            background: #f5ede4;
+            border: 4px solid #2d2d2d;
+            padding: 8px 12px;
+        }
+
+        #captureContainer .capture-right .trait-block .tlabel {
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+        }
+
+        #captureContainer .capture-right .trait-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.65rem;
+            margin: 3px 0;
+        }
+
+        #captureContainer .capture-right .trait-row .tbar {
+            flex: 1;
+            height: 14px;
+            background: #d4c5b2;
+            border: 2px solid #2d2d2d;
+            display: flex;
+        }
+
+        #captureContainer .capture-right .trait-row .tbar .l {
+            height: 100%;
+            background: #7ab0c8;
+        }
+
+        #captureContainer .capture-right .trait-row .tbar .r {
+            height: 100%;
+            background: #e8a86a;
+        }
+
+        #captureContainer .capture-right .items-block {
+            margin-top: 8px;
+            font-size: 0.7rem;
+            background: #e8ddd0;
+            padding: 6px 12px;
+            border: 4px solid #2d2d2d;
+        }
+
+        #captureContainer .capture-footer {
+            margin-top: 20px;
+            text-align: center;
+            border-top: 4px solid #2d2d2d;
+            padding-top: 16px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
         @media (max-width: 760px) {
             .left-panel {
                 flex: 1 1 100%;
@@ -713,6 +854,19 @@
             }
             .item-popup .item-name {
                 font-size: 1.2rem;
+            }
+            #captureContainer {
+                width: 600px;
+                padding: 16px;
+            }
+            #captureContainer .capture-inner {
+                padding: 16px;
+            }
+            #captureContainer .capture-body {
+                flex-direction: column;
+            }
+            #captureContainer .capture-left {
+                flex: 1 1 100%;
             }
         }
 
@@ -767,6 +921,7 @@
 </head>
 <body>
 
+    <!-- ===== 主要遊戲容器 ===== -->
     <div class="game-wrapper" id="app">
         <div class="game-header">
             <span class="title">🎮 燕京生活啟航站</span>
@@ -784,11 +939,19 @@
         </div>
     </div>
 
+    <!-- ===== 截圖專用容器 (隱藏，用於完整渲染) ===== -->
+    <div id="captureContainer">
+        <div class="capture-inner" id="captureInner">
+            <!-- 由 JavaScript 動態填充 -->
+        </div>
+    </div>
+
     <script>
         // ================================================================
-        //  1. Google Apps Script URL (已更新)
+        //  1. Google Apps Script URL (請替換為您的部署網址)
         // ================================================================
-        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKHI2NNIg6xjfwMf0xjhwAKdplHstkyJbVpktJm3FHtGcDd0ZXLxnn5nogyOcTEzTNYw/exec';
+        const GOOGLE_APPS_SCRIPT_URL =
+            'https://script.google.com/macros/s/AKfycbxjiHaLMZvD0yF-bZGWs7nq71FoNjliDJS-_7WAF76wjzeh-xPqH1HQn4Ho-t6POVDN/exec';
 
         // ================================================================
         //  2. 題庫 (10題)
@@ -1042,6 +1205,8 @@
             isJumping: false,
             questionTyped: false,
             isWaitingForNext: false,
+            finalScores: null,
+            proto: null,
         };
 
         // ================================================================
@@ -1080,7 +1245,7 @@
         const itemDisplay = document.getElementById('itemDisplay');
 
         // ================================================================
-        //  7. 像素場景繪製 (精簡版 - 保留核心場景)
+        //  7. 像素場景繪製 (簡化版)
         // ================================================================
         const W = 640,
             H = 480;
@@ -1110,13 +1275,9 @@
 
         function drawScene(stage, frame) {
             ctx.clearRect(0, 0, W, H);
-
-            // 簡化版：每個場景只繪製核心背景和角色
             drawSkyAndGround();
             drawClouds(frame);
             drawSceneElements(stage, frame);
-
-            // 畫角色
             const charX = 320 + Math.sin(frame * 0.02) * 4;
             const charY = 380 + (state.isJumping ? -Math.sin(state.jumpFrame * 0.12) * 40 : Math.sin(frame * 0.03) * 2);
             drawCharacter(ctx, charX, charY, frame);
@@ -1154,7 +1315,6 @@
         }
 
         function drawSceneElements(stage, frame) {
-            // 簡化場景元素 - 每個場景畫一些代表性物件
             const elements = {
                 'classroom': () => {
                     ctx.fillStyle = COLORS.cream;
@@ -1325,7 +1485,7 @@
                     ctx.fillText('🌟🌟🌟', 380, 254);
                 },
                 'result': () => {
-                    drawSceneElements['graduation']();
+                    elements['graduation']();
                     for (let i = 0; i < 20; i++) {
                         const x = (i * 37 + frame * 0.6) % 640;
                         const y = (i * 23 + frame * 0.4) % 480;
@@ -1363,11 +1523,8 @@
                     ctx.fillText('✦ 歡迎加入燕京大家庭 ✦', 200, 316);
                 }
             };
-
-            if (elements[stage]) {
-                elements[stage]();
-            } else {
-                // fallback
+            if (elements[stage]) elements[stage]();
+            else {
                 ctx.fillStyle = '#b5d4e8';
                 ctx.fillRect(0, 0, W, H);
                 ctx.fillStyle = '#6a9a5a';
@@ -1375,46 +1532,27 @@
             }
         }
 
-        // ---- 角色繪製 ----
         function drawCharacter(ctx, x, y, frame) {
             const gender = state.gender || 'boy';
             const outfit = state.outfit || 'summer';
-
             const scale = 2.2;
             const bx = x - 18 * scale;
             const by = y - 36 * scale;
-
             ctx.fillStyle = 'rgba(0,0,0,0.12)';
             ctx.beginPath();
             ctx.ellipse(x, y + 14, 26 * scale, 8, 0, 0, Math.PI * 2);
             ctx.fill();
-
             let shirtColor, pantsColor;
             if (outfit === 'summer') {
-                if (gender === 'boy') {
-                    shirtColor = '#f5f0e8';
-                    pantsColor = '#6a8ab5';
-                } else {
-                    shirtColor = '#6a8ab5';
-                    pantsColor = '#6a8ab5';
-                }
-            } else if (outfit === 'winter') {
-                shirtColor = '#2d2d2d';
-                pantsColor = '#1a1a1a';
-            } else if (outfit === 'sport') {
-                shirtColor = '#e88d4a';
-                pantsColor = '#4a6a9a';
-            } else if (outfit === 'scout') {
-                shirtColor = '#4a7a3a';
-                pantsColor = '#3a5a2a';
-            } else if (outfit === 'stjohn') {
-                shirtColor = '#c45a5a';
-                pantsColor = '#2d2d2d';
-            } else {
-                shirtColor = '#f5f0e8';
-                pantsColor = '#4a6a8a';
-            }
-
+                if (gender === 'boy') { shirtColor = '#f5f0e8';
+                    pantsColor = '#6a8ab5'; } else { shirtColor = '#6a8ab5';
+                    pantsColor = '#6a8ab5'; }
+            } else if (outfit === 'winter') { shirtColor = '#2d2d2d';
+                pantsColor = '#1a1a1a'; } else if (outfit === 'sport') { shirtColor = '#e88d4a';
+                pantsColor = '#4a6a9a'; } else if (outfit === 'scout') { shirtColor = '#4a7a3a';
+                pantsColor = '#3a5a2a'; } else if (outfit === 'stjohn') { shirtColor = '#c45a5a';
+                pantsColor = '#2d2d2d'; } else { shirtColor = '#f5f0e8';
+                pantsColor = '#4a6a8a'; }
             ctx.fillStyle = shirtColor;
             ctx.fillRect(bx + 8 * scale, by + 18 * scale, 24 * scale, 22 * scale);
             if (gender === 'girl' && outfit === 'summer') {
@@ -1426,16 +1564,13 @@
                 ctx.fillRect(bx + 8 * scale, by + 38 * scale, 10 * scale, 16 * scale);
                 ctx.fillRect(bx + 22 * scale, by + 38 * scale, 10 * scale, 16 * scale);
             }
-
             if (outfit === 'winter') {
                 ctx.fillStyle = '#4a4a6a';
                 ctx.fillRect(bx + 17 * scale, by + 18 * scale, 6 * scale, 14 * scale);
                 ctx.fillRect(bx + 14 * scale, by + 16 * scale, 12 * scale, 6 * scale);
             }
-
             ctx.fillStyle = '#f5d0b0';
             ctx.fillRect(bx + 8 * scale, by - 2 * scale, 24 * scale, 20 * scale);
-
             ctx.fillStyle = '#1a1a1a';
             ctx.fillRect(bx + 4 * scale, by - 6 * scale, 32 * scale, 8 * scale);
             ctx.fillRect(bx + 2 * scale, by + 2 * scale, 6 * scale, 8 * scale);
@@ -1444,7 +1579,6 @@
                 ctx.fillRect(bx + 2 * scale, by + 8 * scale, 4 * scale, 8 * scale);
                 ctx.fillRect(bx + 34 * scale, by + 8 * scale, 4 * scale, 8 * scale);
             }
-
             ctx.fillStyle = '#f5f0e8';
             ctx.fillRect(bx + 10 * scale, by + 6 * scale, 8 * scale, 8 * scale);
             ctx.fillRect(bx + 22 * scale, by + 6 * scale, 8 * scale, 8 * scale);
@@ -1452,20 +1586,16 @@
             const eyeOff = Math.sin(frame * 0.04) * 1.5;
             ctx.fillRect(bx + 12 * scale + eyeOff, by + 8 * scale, 4 * scale, 4 * scale);
             ctx.fillRect(bx + 24 * scale + eyeOff, by + 8 * scale, 4 * scale, 4 * scale);
-
             ctx.fillStyle = '#c45a5a';
             ctx.fillRect(bx + 14 * scale, by + 16 * scale, 12 * scale, 3 * scale);
-
             const armSwing = Math.sin(frame * 0.08) * 6 * scale;
             ctx.fillStyle = '#f5d0b0';
             ctx.fillRect(bx - 2 * scale, by + 20 * scale + armSwing, 8 * scale, 14 * scale);
             ctx.fillRect(bx + 34 * scale, by + 20 * scale - armSwing, 8 * scale, 14 * scale);
-
             const legOff = Math.sin(frame * 0.1) * 4 * scale;
             ctx.fillStyle = '#2d2d2d';
             ctx.fillRect(bx + 8 * scale, by + 54 * scale + legOff, 8 * scale, 10 * scale);
             ctx.fillRect(bx + 24 * scale, by + 54 * scale - legOff, 8 * scale, 10 * scale);
-
             if (state.page === 'quiz' || state.page === 'home') {
                 ctx.fillStyle = '#5a3a2a';
                 ctx.fillRect(bx + 28 * scale, by + 20 * scale, 10 * scale, 20 * scale);
@@ -1490,28 +1620,17 @@
                 </div>
             `;
             document.body.appendChild(overlay);
-
-            document.getElementById('popupConfirmBtn').addEventListener('click', () => {
-                overlay.remove();
-                if (callback) callback();
-            });
-
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) {
-                    overlay.remove();
-                    if (callback) callback();
-                }
-            });
+            document.getElementById('popupConfirmBtn').addEventListener('click', () => { overlay.remove(); if (callback)
+                    callback(); });
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) { overlay.remove(); if (callback) callback(); } });
         }
 
         // ================================================================
         //  9. 打字機效果
         // ================================================================
         function typeWriter(element, text, speed = 50, callback) {
-            if (state.isTyping) {
-                clearTimeout(state.typeTimer);
-                state.isTyping = false;
-            }
+            if (state.isTyping) { clearTimeout(state.typeTimer);
+                state.isTyping = false; }
             state.isTyping = true;
             let index = 0;
             element.textContent = '';
@@ -1532,18 +1651,13 @@
             typeChar();
         }
 
-        function stopTyping() {
-            if (state.typeTimer) {
-                clearTimeout(state.typeTimer);
-                state.typeTimer = null;
-            }
-            state.isTyping = false;
-        }
+        function stopTyping() { if (state.typeTimer) { clearTimeout(state.typeTimer);
+                state.typeTimer = null; }
+            state.isTyping = false; }
 
         // ================================================================
         //  10. 渲染函數
         // ================================================================
-
         function renderHome() {
             state.page = 'home';
             stopTyping();
@@ -1574,7 +1688,6 @@
                     <div style="font-size:0.7rem; color:#6a5a4a; margin-top:6px;">🌟 10條情境題 · 找出你的性格原型</div>
                 </div>
             `;
-
             document.querySelectorAll('.opt-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const group = this.dataset.group;
@@ -1583,17 +1696,11 @@
                     'active'));
                     this.classList.add('active');
                     state[group] = value;
-                    if (state.page === 'home') {
-                        drawScene('home_custom', state.sceneFrame);
-                    }
+                    if (state.page === 'home') drawScene('home_custom', state.sceneFrame);
                 });
             });
-
             document.getElementById('startBtn').addEventListener('click', startQuiz);
-            document.getElementById('nameInput').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') startQuiz();
-            });
-
+            document.getElementById('nameInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') startQuiz(); });
             document.getElementById('nameInput').focus();
             drawScene('home_custom', 0);
             if (state.animId) cancelAnimationFrame(state.animId);
@@ -1605,11 +1712,8 @@
         function startQuiz() {
             const input = document.getElementById('nameInput');
             const name = input.value.trim();
-            if (!name) {
-                alert('請先輸入你的姓名！ ✏️');
-                input.focus();
-                return;
-            }
+            if (!name) { alert('請先輸入你的姓名！ ✏️');
+                input.focus(); return; }
             state.studentName = name;
             state.answers = QUESTIONS.map((q) => ({ qId: q.id, optionIndex: null, scores: {} }));
             state.items = [];
@@ -1626,7 +1730,6 @@
             const q = QUESTIONS[index];
             const total = QUESTIONS.length;
             const pct = Math.round(((index + 1) / total) * 100);
-
             let optionsHtml = '';
             q.options.forEach((opt, i) => {
                 const selected = (state.answers[index].optionIndex === i) ? 'selected' : '';
@@ -1637,64 +1740,37 @@
                     </div>
                 `;
             });
-
-            const stageEmoji = {
-                '中一': '📚',
-                '中二/中三': '🎯',
-                '中四': '💪',
-                '中五': '📝',
-                '中六': '🎓'
-            };
-
+            const stageEmoji = { '中一': '📚', '中二/中三': '🎯', '中四': '💪', '中五': '📝', '中六': '🎓' };
             dynamicContent.innerHTML = `
                 <div style="display:flex; flex-direction:column; height:100%;">
                     <div class="progress-area">
                         <span class="progress-text">${index+1}/${total}</span>
-                        <div class="progress-track">
-                            <div class="progress-fill" style="width:${pct}%;"></div>
-                        </div>
+                        <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
                         <span class="progress-text">${pct}%</span>
                     </div>
-                    <div style="font-size:0.65rem; color:#6a5a4a; margin-bottom:4px;">
-                        ${stageEmoji[q.stage] || ''} ${q.stage}
-                    </div>
+                    <div style="font-size:0.65rem; color:#6a5a4a; margin-bottom:4px;">${stageEmoji[q.stage] || ''} ${q.stage}</div>
                     <div style="font-weight:bold; font-size:1rem; margin-bottom:12px; line-height:1.5;" class="typewriter" id="questionText"></div>
-                    <div class="option-grid" id="optionGrid">
-                        ${optionsHtml}
-                    </div>
+                    <div class="option-grid" id="optionGrid">${optionsHtml}</div>
                     <div style="display:flex; gap:10px; margin-top:auto; flex-wrap:wrap;">
                         <button class="pixel-btn secondary" id="prevBtn" ${index===0?'disabled':''}>◀ 上一題</button>
-                        <button class="pixel-btn primary" id="nextBtn" style="margin-left:auto;">
-                            ${index===total-1 ? '📊 完成' : '下一題 ▶'}
-                        </button>
+                        <button class="pixel-btn primary" id="nextBtn" style="margin-left:auto;">${index===total-1 ? '📊 完成' : '下一題 ▶'}</button>
                     </div>
                 </div>
             `;
-
             const qTextEl = document.getElementById('questionText');
-            if (qTextEl) {
-                typeWriter(qTextEl, q.text, 50);
-            }
-
+            if (qTextEl) typeWriter(qTextEl, q.text, 50);
             document.querySelectorAll('.option-btn').forEach(el => {
                 el.addEventListener('click', function() {
                     const idx = parseInt(this.dataset.optindex);
                     selectOption(index, idx);
                 });
             });
-
             document.getElementById('prevBtn').addEventListener('click', () => {
-                if (index > 0) {
-                    if (state.items.length > 0) state.items.pop();
-                    renderQuestion(index - 1);
-                }
+                if (index > 0) { if (state.items.length > 0) state.items.pop();
+                    renderQuestion(index - 1); }
             });
-
             document.getElementById('nextBtn').addEventListener('click', () => {
-                if (state.answers[index].optionIndex === null) {
-                    alert('請先選擇一個選項！ 😊');
-                    return;
-                }
+                if (state.answers[index].optionIndex === null) { alert('請先選擇一個選項！ 😊'); return; }
                 const qData = QUESTIONS[index];
                 const optIdx = state.answers[index].optionIndex;
                 const selectedOpt = qData.options[optIdx];
@@ -1705,29 +1781,18 @@
                     showItemPopup(item, () => {
                         if (index === total - 1) {
                             const allDone = state.answers.every(a => a.optionIndex !== null);
-                            if (!allDone) {
-                                alert('還有題目未作答，請完成全部10題！ 📝');
-                                return;
-                            }
+                            if (!allDone) { alert('還有題目未作答，請完成全部10題！ 📝'); return; }
                             showResult();
-                        } else {
-                            renderQuestion(index + 1);
-                        }
+                        } else renderQuestion(index + 1);
                     });
                 } else {
                     if (index === total - 1) {
                         const allDone = state.answers.every(a => a.optionIndex !== null);
-                        if (!allDone) {
-                            alert('還有題目未作答，請完成全部10題！ 📝');
-                            return;
-                        }
+                        if (!allDone) { alert('還有題目未作答，請完成全部10題！ 📝'); return; }
                         showResult();
-                    } else {
-                        renderQuestion(index + 1);
-                    }
+                    } else renderQuestion(index + 1);
                 }
             });
-
             drawScene(q.scene, state.sceneFrame);
             if (state.animId) cancelAnimationFrame(state.animId);
             animateScene(q.scene);
@@ -1749,24 +1814,21 @@
         }
 
         // ================================================================
-        //  11. 結果頁
+        //  11. 結果頁 (只有「遞交」按鈕)
         // ================================================================
         function showResult() {
             state.page = 'result';
             stopTyping();
 
+            // 計算分數
             const rawScores = {};
             const allTraits = ['安全感', '冒險感', '學習力', '創造力', '規劃性', '隨興性', '朋友為重', '家庭為重', '顧己', '利他'];
             allTraits.forEach(t => rawScores[t] = 0);
-
             state.answers.forEach(ans => {
                 if (ans.optionIndex !== null) {
-                    for (let key in ans.scores) {
-                        rawScores[key] += ans.scores[key];
-                    }
+                    for (let key in ans.scores) rawScores[key] += ans.scores[key];
                 }
             });
-
             const finalScores = {};
             TRAIT_PAIRS.forEach(pair => {
                 const left = pair.left,
@@ -1783,35 +1845,26 @@
                     }
                 });
                 const sum = leftTotal + rightTotal;
-                if (sum === 0) {
-                    finalScores[left] = 8;
-                    finalScores[right] = 8;
-                } else {
-                    finalScores[left] = Math.round((leftTotal / sum) * 16);
-                    finalScores[right] = 16 - finalScores[left];
-                }
+                if (sum === 0) { finalScores[left] = 8;
+                    finalScores[right] = 8; } else { finalScores[left] = Math.round((leftTotal / sum) * 16);
+                    finalScores[right] = 16 - finalScores[left]; }
                 finalScores[left] = Math.max(0, Math.min(16, finalScores[left]));
                 finalScores[right] = 16 - finalScores[left];
             });
             allTraits.forEach(t => { if (!(t in finalScores)) finalScores[t] = 8; });
+            state.finalScores = finalScores;
 
             const proto = getPrototype(finalScores);
+            state.proto = proto;
 
             const q6Answer = state.answers[5];
             const isBullyChoice = (q6Answer.optionIndex === 3);
-
             const q3Ans = state.answers[2];
             const q6Ans = state.answers[5];
-            if (q3Ans.optionIndex === 0 || q3Ans.optionIndex === 1) {
-                if (!state.unlockedCostumes.includes('scout')) {
-                    state.unlockedCostumes.push('scout');
-                }
-            }
-            if (q6Ans.optionIndex === 1 || q6Ans.optionIndex === 2) {
-                if (!state.unlockedCostumes.includes('stjohn')) {
-                    state.unlockedCostumes.push('stjohn');
-                }
-            }
+            if (q3Ans.optionIndex === 0 || q3Ans.optionIndex === 1) { if (!state.unlockedCostumes.includes('scout')) state
+                    .unlockedCostumes.push('scout'); }
+            if (q6Ans.optionIndex === 1 || q6Ans.optionIndex === 2) { if (!state.unlockedCostumes.includes('stjohn')) state
+                    .unlockedCostumes.push('stjohn'); }
 
             let barsHtml = '';
             TRAIT_PAIRS.forEach(pair => {
@@ -1836,20 +1889,14 @@
             });
 
             let itemBadges = '';
-            state.items.forEach(item => {
-                itemBadges += `<span class="item-badge">${item.icon} ${item.name}</span>`;
-            });
+            state.items.forEach(item => { itemBadges += `<span class="item-badge">${item.icon} ${item.name}</span>`; });
 
             let costumeHtml = '';
             if (state.unlockedCostumes.length > 0) {
                 const costumeMap = { 'scout': '童軍制服', 'stjohn': '聖約翰救傷隊制服' };
                 const names = state.unlockedCostumes.map(c => costumeMap[c] || c).join('、');
-                costumeHtml = `
-                    <div class="costume-unlock">
-                        🎉 解鎖隱藏服裝：<strong>${names}</strong>！<br>
-                        <span style="font-size:0.7rem;">你嘅選擇展現出特別嘅特質，獲得呢啲制服作為獎勵！</span>
-                    </div>
-                `;
+                costumeHtml =
+                    `<div class="costume-unlock">🎉 解鎖隱藏服裝：<strong>${names}</strong>！<br><span style="font-size:0.7rem;">你嘅選擇展現出特別嘅特質，獲得呢啲制服作為獎勵！</span></div>`;
             }
 
             let logHtml = '';
@@ -1867,91 +1914,49 @@
 
             let careHtml = '';
             if (isBullyChoice) {
-                careHtml = `
-                    <div class="care-note">
-                        ⚠️ <strong>關懷提示：</strong>你嘅選擇反映你當下可能感到不安或害怕。如果你喺校園遇到困難或壓力，記住可以搵老師、輔導員或社工傾訴，你唔係一個人面對嘅。❤️
-                    </div>
-                `;
+                careHtml =
+                    `<div class="care-note">⚠️ <strong>關懷提示：</strong>你嘅選擇反映你當下可能感到不安或害怕。如果你喺校園遇到困難或壓力，記住可以搵老師、輔導員或社工傾訴，你唔係一個人面對嘅。❤️</div>`;
             }
 
-            const encouragements = [
-                '你已經很勇敢地面對新挑戰了！', '每一步成長都值得被肯定！',
-                '記住，你從來不是一個人。', '相信自己，你比你想像中更強大！',
-                '燕京書院以你為榮！', '你的獨特之處，就是你的力量！'
+            const encouragements = ['你已經很勇敢地面對新挑戰了！', '每一步成長都值得被肯定！', '記住，你從來不是一個人。', '相信自己，你比你想像中更強大！', '燕京書院以你為榮！',
+                '你的獨特之處，就是你的力量！'
             ];
             const randomEncourage = encouragements[Math.floor(Math.random() * encouragements.length)];
 
             const adviceHtml = `
-                <div class="advice-block">
-                    <h4>📖 學業選科面</h4>
-                    <p>${proto.advice.academic}</p>
-                </div>
-                <div class="advice-block">
-                    <h4>🤝 社交與人際面</h4>
-                    <p>${proto.advice.social}</p>
-                </div>
-                <div class="advice-block">
-                    <h4>💖 情緒管理面</h4>
-                    <p>${proto.advice.emotion}</p>
-                </div>
-                <div style="background:#f5ede4; border:3px solid #2d2d2d; padding:8px 12px; margin:4px 0; text-align:center; font-size:0.8rem;">
-                    🌟 ${randomEncourage}
-                </div>
-                <div style="background:#e8ddd0; border:3px solid #2d2d2d; padding:6px 12px; margin:4px 0; text-align:center; font-size:0.7rem;">
-                    🏫 校園資源：若有需要，可隨時找 <strong>老師、社工和輔導員</strong> 聊天 ❤️
-                </div>
+                <div class="advice-block"><h4>📖 學業選科面</h4><p>${proto.advice.academic}</p></div>
+                <div class="advice-block"><h4>🤝 社交與人際面</h4><p>${proto.advice.social}</p></div>
+                <div class="advice-block"><h4>💖 情緒管理面</h4><p>${proto.advice.emotion}</p></div>
+                <div style="background:#f5ede4; border:3px solid #2d2d2d; padding:8px 12px; margin:4px 0; text-align:center; font-size:0.8rem;">🌟 ${randomEncourage}</div>
+                <div style="background:#e8ddd0; border:3px solid #2d2d2d; padding:6px 12px; margin:4px 0; text-align:center; font-size:0.7rem;">🏫 校園資源：若有需要，可隨時找 <strong>老師、社工和輔導員</strong> 聊天 ❤️</div>
             `;
 
             dynamicContent.innerHTML = `
                 <div id="resultPage">
                     <div class="result-title">🎓 ${state.studentName} 嘅中學生活</div>
-
                     ${costumeHtml}
-
                     <div class="trait-bar-group">${barsHtml}</div>
-
                     <div class="proto-box">
                         <div class="proto-name">🏆 ${proto.id}</div>
                         <div class="proto-tags">${proto.tags.map(t => `<span>${t}</span>`).join('')}</div>
                         <p style="margin-top:6px; font-size:0.85rem;">${proto.desc}</p>
                     </div>
-
                     ${careHtml}
                     ${adviceHtml}
-
-                    <div class="inventory-display">
-                        <strong>🎒 道具收藏：</strong>
-                        ${itemBadges || '（尚未獲得任何道具）'}
-                    </div>
-
-                    <div class="answer-log">
-                        <strong>📝 作答記錄</strong>
-                        <div id="answerLogList">${logHtml}</div>
-                    </div>
-
-                    <div style="text-align:center; font-size:0.65rem; color:#6a5a4a; border-top:3px solid #d4c5b2; padding-top:6px; margin-top:4px;">
-                        🏫 中華基督教會燕京書院 · 學生支援部
-                    </div>
-
+                    <div class="inventory-display"><strong>🎒 道具收藏：</strong>${itemBadges || '（尚未獲得任何道具）'}</div>
+                    <div class="answer-log"><strong>📝 作答記錄</strong><div id="answerLogList">${logHtml}</div></div>
+                    <div style="text-align:center; font-size:0.65rem; color:#6a5a4a; border-top:3px solid #d4c5b2; padding-top:6px; margin-top:4px;">🏫 中華基督教會燕京書院 · 學生支援部</div>
                     <div class="result-actions">
-                        <button class="pixel-btn warning" id="retakeBtn">🔄 重新測驗</button>
-                        <button class="pixel-btn primary" id="printBtn">📄 列印/PDF</button>
-                        <button class="pixel-btn secondary" id="saveDriveBtn">💾 儲存到Google Drive</button>
+                        <button class="pixel-btn primary" id="submitBtn">遞交</button>
                     </div>
                 </div>
             `;
 
-            document.getElementById('retakeBtn').addEventListener('click', () => {
-                if (confirm('重新測驗會清除所有進度，確定嗎？')) resetAll();
-            });
-            document.getElementById('printBtn').addEventListener('click', () => window.print());
-            document.getElementById('saveDriveBtn').addEventListener('click', saveToGoogleDrive);
+            // 綁定遞交按鈕事件
+            document.getElementById('submitBtn').addEventListener('click', submitAndUpload);
 
-            if (state.unlockedCostumes.length > 0) {
-                state.outfit = state.unlockedCostumes[0];
-            } else {
-                state.outfit = 'summer';
-            }
+            if (state.unlockedCostumes.length > 0) state.outfit = state.unlockedCostumes[0];
+            else state.outfit = 'summer';
 
             drawScene('result', state.sceneFrame);
             if (state.animId) cancelAnimationFrame(state.animId);
@@ -1965,18 +1970,95 @@
         }
 
         // ================================================================
-        //  12. 原型配對
+        //  12. 遞交並上傳 PDF
+        // ================================================================
+        function submitAndUpload() {
+            const btn = document.getElementById('submitBtn');
+            btn.textContent = '⏳ 處理中...';
+            btn.disabled = true;
+
+            // 選取要轉換為 PDF 的區域 (結算頁面)
+            const element = document.getElementById('resultPage');
+
+            // 使用 html2canvas 將元素轉為圖片
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#f5ede4',
+                logging: false,
+            }).then((imgCanvas) => {
+                // 將圖片轉為 JPEG 數據
+                const imgData = imgCanvas.toDataURL('image/jpeg', 0.95);
+
+                // 使用 jsPDF 建立 PDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (imgCanvas.height / imgCanvas.width) * pdfWidth;
+
+                // 如果圖片高度超過一頁，分成多頁
+                let heightLeft = pdfHeight;
+                let position = 0;
+                const pageHeight = pdf.internal.pageSize.getHeight();
+
+                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft > 0) {
+                    position = heightLeft - pdfHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                // 生成 PDF Blob
+                const pdfBlob = pdf.output('blob');
+
+                // 上傳到 Google Drive
+                uploadPdfToDrive(pdfBlob);
+
+                btn.textContent = '✅ 已遞交';
+                btn.disabled = false;
+
+            }).catch((err) => {
+                console.error('PDF 生成失敗:', err);
+                alert('⚠️ 生成 PDF 失敗，請稍後再試。');
+                btn.textContent = '遞交';
+                btn.disabled = false;
+            });
+        }
+
+        // ================================================================
+        //  13. 上傳 PDF 到 Google Drive
+        // ================================================================
+        function uploadPdfToDrive(pdfBlob) {
+            const formData = new FormData();
+            formData.append('file', pdfBlob, `燕京_${state.studentName}_完整報告.pdf`);
+            formData.append('name', state.studentName);
+            formData.append('timestamp', new Date().toISOString());
+
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: formData,
+            }).then(() => {
+                alert('✅ PDF 已成功儲存到 Google Drive！');
+            }).catch((err) => {
+                console.error('上傳失敗:', err);
+                alert('⚠️ PDF 上傳失敗，但 PDF 已在本機生成。請檢查網絡連線。');
+            });
+        }
+
+        // ================================================================
+        //  14. 原型配對
         // ================================================================
         function getPrototype(scores) {
             const s = scores;
             const rules = [
                 { id: '穩健型學霸', check: () => s.安全感 >= 12 && s.學習力 >= 12 && s.規劃性 >= 12 },
                 { id: '冒險型創作者', check: () => s.冒險感 >= 12 && s.創造力 >= 12 && s.隨興性 >= 10 },
-                { id: '平衡型協調者', check: () => {
-                        const vals = Object.values(s);
-                        const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
-                        return vals.every(v => v >= 5 && v <= 11) && avg >= 6 && avg <= 10;
-                    } },
+                { id: '平衡型協調者', check: () => { const vals = Object.values(s); const avg = vals.reduce((a, b) => a + b,
+                        0) / vals.length; return vals.every(v => v >= 5 && v <= 11) && avg >= 6 && avg <= 10; } },
                 { id: '保守型跟隨者', check: () => s.安全感 >= 12 && s.顧己 >= 10 && s.家庭為重 >= 10 },
                 { id: '衝動型行動派', check: () => s.冒險感 >= 12 && s.隨興性 >= 10 && s.朋友為重 >= 10 },
                 { id: '完美型規劃師', check: () => s.規劃性 >= 12 && s.學習力 >= 10 && s.顧己 >= 10 },
@@ -2008,72 +2090,7 @@
         }
 
         // ================================================================
-        //  13. Google Drive 儲存 (已更新 URL)
-        // ================================================================
-        function saveToGoogleDrive() {
-            const data = {
-                name: state.studentName,
-                scores: {},
-                prototype: '',
-                answers: state.answers.map((a, idx) => {
-                    const q = QUESTIONS[idx];
-                    return {
-                        qId: q.id,
-                        question: q.text.substring(0, 30) + '...',
-                        option: a.optionIndex !== null ? q.options[a.optionIndex].label : '未答',
-                        text: a.optionIndex !== null ? q.options[a.optionIndex].text : ''
-                    };
-                }),
-                items: state.items.map(i => i.name),
-                unlockedCostumes: state.unlockedCostumes,
-                timestamp: new Date().toISOString()
-            };
-
-            const finalScores = {};
-            TRAIT_PAIRS.forEach(pair => {
-                const left = pair.left,
-                    right = pair.right;
-                let leftTotal = 0,
-                    rightTotal = 0;
-                const qIndices = TRAIT_QUESTIONS[left] || [];
-                qIndices.forEach(qi => {
-                    const ans = state.answers[qi];
-                    if (ans.optionIndex !== null) {
-                        const scores = ans.scores;
-                        if (scores[left]) leftTotal += scores[left];
-                        if (scores[right]) rightTotal += scores[right];
-                    }
-                });
-                const sum = leftTotal + rightTotal;
-                if (sum === 0) {
-                    finalScores[left] = 8;
-                    finalScores[right] = 8;
-                } else {
-                    finalScores[left] = Math.round((leftTotal / sum) * 16);
-                    finalScores[right] = 16 - finalScores[left];
-                }
-                finalScores[left] = Math.max(0, Math.min(16, finalScores[left]));
-                finalScores[right] = 16 - finalScores[left];
-            });
-            data.scores = finalScores;
-            const proto = getPrototype(finalScores);
-            data.prototype = proto.id;
-
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            }).then(() => {
-                alert('✅ 數據已成功儲存到 Google Drive！');
-            }).catch((err) => {
-                console.error('儲存失敗:', err);
-                alert('⚠️ 儲存失敗，請檢查網絡連線。');
-            });
-        }
-
-        // ================================================================
-        //  14. 重置 & 動畫
+        //  15. 重置 & 動畫
         // ================================================================
         function resetAll() {
             state.currentQ = 0;
@@ -2109,7 +2126,7 @@
         }
 
         // ================================================================
-        //  15. 啟動
+        //  16. 啟動
         // ================================================================
         renderHome();
 
@@ -2121,8 +2138,9 @@
             }
         });
 
-        console.log('🎮 燕京生活啟航站 v4.0 已啟動！');
+        console.log('🎮 燕京生活啟航站 v4.1 已啟動！');
         console.log('📋 共 ' + QUESTIONS.length + ' 條題目，8 種性格原型');
+        console.log('📷 支援完整報告截圖 (手機也可用)');
         console.log('💾 Google Apps Script URL 已設定');
         console.log('⌨️ 快捷鍵: 1-4 選項, Enter 下一題, R 重新測驗');
     </script>
