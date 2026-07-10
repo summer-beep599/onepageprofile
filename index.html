@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
     </script>
     <style>
-        /* ===== 所有樣式保持不變，新增截圖專用容器 ===== */
+        /* ===== 所有樣式保持不變 ===== */
         * {
             margin: 0;
             padding: 0;
@@ -674,7 +674,7 @@
             border: 2px solid #2d2d2d;
         }
 
-        /* ===== 截圖專用容器 (隱藏，僅用於渲染) ===== */
+        /* ===== 截圖專用容器 (隱藏) ===== */
         #captureContainer {
             position: fixed;
             top: -9999px;
@@ -792,12 +792,27 @@
             background: #e8a86a;
         }
 
-        #captureContainer .capture-right .items-block {
+        #captureContainer .capture-right .advice-block-capture {
             margin-top: 8px;
             font-size: 0.7rem;
-            background: #e8ddd0;
-            padding: 6px 12px;
+            background: #f5ede4;
+            padding: 8px 12px;
             border: 4px solid #2d2d2d;
+            border-left: 12px solid #7ab87a;
+        }
+
+        #captureContainer .capture-right .advice-block-capture h4 {
+            font-size: 0.75rem;
+            margin-bottom: 2px;
+        }
+
+        #captureContainer .capture-right .care-note-capture {
+            background: #f5d8d0;
+            border: 4px solid #c45a5a;
+            padding: 8px 12px;
+            margin-top: 8px;
+            font-size: 0.7rem;
+            border-left: 12px solid #c45a5a;
         }
 
         #captureContainer .capture-footer {
@@ -936,7 +951,7 @@
         </div>
     </div>
 
-    <!-- ===== 截圖專用容器 (隱藏，用於完整渲染) ===== -->
+    <!-- ===== 截圖專用容器 (隱藏) ===== -->
     <div id="captureContainer">
         <div class="capture-inner" id="captureInner">
             <!-- 由 JavaScript 動態填充 -->
@@ -1811,7 +1826,7 @@
         }
 
         // ================================================================
-        //  11. 結果頁 + 完整截圖功能
+        //  11. 結果頁
         // ================================================================
         function showResult() {
             state.page = 'result';
@@ -1885,6 +1900,7 @@
                 `;
             });
 
+            // 遊戲內頁面保留道具和服裝顯示（但不會出現在 Google Drive 儲存中）
             let itemBadges = '';
             state.items.forEach(item => { itemBadges += `<span class="item-badge">${item.icon} ${item.name}</span>`; });
 
@@ -1955,7 +1971,6 @@
                     resetAll(); });
             document.getElementById('printBtn').addEventListener('click', () => window.print());
 
-            // 儲存完整報告為圖片（使用隱藏容器完整渲染）
             document.getElementById('saveImageBtn').addEventListener('click', captureFullReport);
 
             if (state.unlockedCostumes.length > 0) state.outfit = state.unlockedCostumes[0];
@@ -1973,23 +1988,23 @@
         }
 
         // ================================================================
-        //  12. 完整報告截圖 + 上傳 Google Drive
+        //  12. 儲存到 Google Drive (完整報告圖片 - 無道具/服裝)
         // ================================================================
         function captureFullReport() {
             const btn = document.getElementById('saveImageBtn');
             btn.textContent = '⏳ 生成中...';
             btn.disabled = true;
 
-            // 1. 準備截圖用的完整內容
             const captureContainer = document.getElementById('captureContainer');
             const captureInner = document.getElementById('captureInner');
 
-            // 取得目前 canvas 畫面 (像素場景)
             const canvasData = canvas.toDataURL('image/png');
-
-            // 取得分數和原型
             const finalScores = state.finalScores || {};
             const proto = state.proto || PROTOTYPES[0];
+
+            // 檢查是否選擇了欺凌選項
+            const q6Answer = state.answers[5];
+            const isBullyChoice = (q6Answer.optionIndex === 3);
 
             // 生成特質長條 (用於截圖)
             let traitRows = '';
@@ -2011,9 +2026,39 @@
                 `;
             });
 
-            let itemList = state.items.map(i => `${i.icon} ${i.name}`).join(' · ') || '（尚未獲得任何道具）';
+            // 生成三方面建議
+            const adviceHtml = `
+                <div class="advice-block-capture">
+                    <h4>📖 學業選科面</h4>
+                    <p>${proto.advice.academic}</p>
+                </div>
+                <div class="advice-block-capture">
+                    <h4>🤝 社交與人際面</h4>
+                    <p>${proto.advice.social}</p>
+                </div>
+                <div class="advice-block-capture">
+                    <h4>💖 情緒管理面</h4>
+                    <p>${proto.advice.emotion}</p>
+                </div>
+            `;
 
-            // 填滿截圖容器
+            // 關懷提示（如有需要）
+            let careHtml = '';
+            if (isBullyChoice) {
+                careHtml = `
+                    <div class="care-note-capture">
+                        ⚠️ <strong>關懷提示：</strong>你嘅選擇反映你當下可能感到不安或害怕。如果你喺校園遇到困難或壓力，記住可以搵老師、輔導員或社工傾訴，你唔係一個人面對嘅。❤️
+                    </div>
+                `;
+            }
+
+            // 鼓勵語句
+            const encouragements = ['你已經很勇敢地面對新挑戰了！', '每一步成長都值得被肯定！', '記住，你從來不是一個人。', '相信自己，你比你想像中更強大！', '燕京書院以你為榮！',
+                '你的獨特之處，就是你的力量！'
+            ];
+            const randomEncourage = encouragements[Math.floor(Math.random() * encouragements.length)];
+
+            // 填滿截圖容器（不含道具和服裝）
             captureInner.innerHTML = `
                 <div class="capture-header">
                     <h1>🎓 ${state.studentName} 嘅中學生活</h1>
@@ -2034,21 +2079,13 @@
                             <div class="tlabel">📊 特質分數</div>
                             ${traitRows}
                         </div>
-                        <div class="items-block">
-                            <strong>🎒 道具收藏：</strong> ${itemList}
-                            ${state.unlockedCostumes.length > 0 ? `<br>🎉 解鎖服裝：${state.unlockedCostumes.join('、')}` : ''}
+                        ${careHtml}
+                        ${adviceHtml}
+                        <div style="margin-top:8px; font-size:0.7rem; background:#f5ede4; padding:6px 12px; border:4px solid #2d2d2d; text-align:center;">
+                            🌟 ${randomEncourage}
                         </div>
-                        <div style="margin-top:8px; font-size:0.65rem; background:#f5ede4; padding:6px 12px; border:4px solid #2d2d2d;">
-                            <strong>📝 作答記錄：</strong><br>
-                            ${QUESTIONS.map((q, idx) => {
-                                const ans = state.answers[idx];
-                                let choice = '未答';
-                                if (ans.optionIndex !== null) {
-                                    const opt = q.options[ans.optionIndex];
-                                    choice = opt.label + '. ' + opt.text.substring(0, 18) + (opt.text.length > 18 ? '...' : '');
-                                }
-                                return `Q${idx+1}: ${choice}`;
-                            }).join(' ｜ ')}
+                        <div style="margin-top:4px; font-size:0.65rem; background:#e8ddd0; padding:4px 12px; border:4px solid #2d2d2d; text-align:center;">
+                            🏫 校園資源：若有需要，可隨時找 <strong>老師、社工和輔導員</strong> 聊天 ❤️
                         </div>
                     </div>
                 </div>
@@ -2057,10 +2094,8 @@
                 </div>
             `;
 
-            // 2. 強制顯示容器（但放在畫面外，用戶看不到）
             captureContainer.style.display = 'block';
 
-            // 3. 用 html2canvas 完整截取
             html2canvas(captureInner, {
                 scale: 2.5,
                 useCORS: true,
@@ -2071,7 +2106,6 @@
                 windowWidth: captureInner.scrollWidth,
                 windowHeight: captureInner.scrollHeight,
             }).then((imgCanvas) => {
-                // 轉為 PNG
                 const imgData = imgCanvas.toDataURL('image/png');
 
                 // 下載到本地
@@ -2083,7 +2117,6 @@
                 // 上傳到 Google Drive
                 uploadImageToDrive(imgData);
 
-                // 隱藏截圖容器
                 captureContainer.style.display = 'none';
                 btn.textContent = '📷 儲存完整報告為圖片';
                 btn.disabled = false;
@@ -2097,7 +2130,6 @@
         }
 
         function uploadImageToDrive(imgData) {
-            // 將 base64 轉為 Blob
             const byteString = atob(imgData.split(',')[1]);
             const mimeString = imgData.split(',')[0].split(':')[1].split(';')[0];
             const ab = new ArrayBuffer(byteString.length);
@@ -2107,13 +2139,11 @@
             }
             const blob = new Blob([ab], { type: mimeString });
 
-            // 建立 FormData
             const formData = new FormData();
             formData.append('file', blob, `燕京_${state.studentName}_完整報告.png`);
             formData.append('name', state.studentName);
             formData.append('timestamp', new Date().toISOString());
 
-            // 發送到 Google Apps Script
             fetch(GOOGLE_APPS_SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -2215,9 +2245,9 @@
             }
         });
 
-        console.log('🎮 燕京生活啟航站 v4.1 已啟動！');
+        console.log('🎮 燕京生活啟航站 v4.2 已啟動！');
         console.log('📋 共 ' + QUESTIONS.length + ' 條題目，8 種性格原型');
-        console.log('📷 支援完整報告截圖 (手機也可用)');
+        console.log('📷 儲存到 Google Drive 的圖片已移除道具和服裝，加入解析及三方面建議');
         console.log('💾 Google Apps Script URL 已設定');
         console.log('⌨️ 快捷鍵: 1-4 選項, Enter 下一題, R 重新測驗');
     </script>
