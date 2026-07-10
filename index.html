@@ -1953,7 +1953,7 @@
             `;
 
             // 綁定遞交按鈕事件
-            document.getElementById('submitBtn').addEventListener('click', submitAndUpload);
+            document.getElementById('submitBtn').addEventListener('click', uploadAndSavPDF);
 
             if (state.unlockedCostumes.length > 0) state.outfit = state.unlockedCostumes[0];
             else state.outfit = 'summer';
@@ -1972,87 +1972,90 @@
         // ================================================================
         //  12. 遞交並上傳 PDF
         // ================================================================
-        
-
+        // ================================================================
+//  遞交並上傳 PDF (修正版)
+// ================================================================
 async function uploadAndSavePDF() {
-    const submitBtn = document.getElementById('submitReportBtn'); // 請對照你網頁按鈕的 ID
+    const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.textContent = '傳送中...';
     }
 
-    // 1. 確保截圖容器在渲染時是看得到的（避免產出空白或計算錯誤）
-    const container = document.getElementById('captureContainer');
-    if (!container) {
-        alert("找不到截圖容器 #captureContainer！");
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '遞交'; }
-        return;
-    }
-    
-    // 暫時將其重置為一般定位以利 html2canvas 計算長寬
-    container.style.position = 'static'; 
-    container.style.top = '0';
-    container.style.left = '0';
-
     try {
-        // 2. 使用 html2canvas 將內容轉成畫布 (指定抓取內層的 captureInner)
-        const innerElement = document.getElementById('captureInner') || container;
-        const canvas = await html2canvas(innerElement, {
+        // 1. 獲取結果頁面元素
+        const element = document.getElementById('resultPage');
+        if (!element) {
+            alert('找不到結果頁面！');
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '遞交'; }
+            return;
+        }
+
+        // 2. 使用 html2canvas 將結果頁轉為圖片
+        const canvas = await html2canvas(element, {
             useCORS: true,
-            scale: 2 // 提升清晰度
+            scale: 2,
+            backgroundColor: '#f5ede4',
+            logging: false,
         });
 
-        // 渲染完畢，立刻把容器移回去藏起來
-        container.style.position = 'fixed';
-        container.style.top = '-9999px';
-        container.style.left = '-9999px';
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
-        const imgData = canvas.toDataURL('image/png');
-
-        // 3. 建立 jsPDF 物件並置入圖片
+        // 3. 使用 jsPDF 建立 PDF
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgWidth = 210; // A4 寬度 (mm)
-        const pageHeight = 295; // A4 長度 (mm)
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height / canvas.width) * pdfWidth;
+        const pageHeight = pdf.internal.pageSize.getHeight();
 
-        // 4. 將 PDF 轉換為安全傳輸的 Base64 字串
+        let heightLeft = pdfHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+            position = heightLeft - pdfHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+            heightLeft -= pageHeight;
+        }
+
+        // 4. 將 PDF 轉為 Base64
         const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
-        // 5. 打包準備發送給 Apps Script 的 JSON 資料
-        const formattedDate = new Date().toISOString().slice(0,10).replace(/-/g,"");
-        const pName = (typeof state !== 'undefined' && state.playerName) ? state.playerName : "學生";
-        
+        // 5. 準備發送數據
+        const formattedDate = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+        const pName = state.studentName || "學生";
+
         const payload = {
             studentName: pName,
             pdfData: pdfBase64,
             fileName: `燕京_${pName}_完整報告_${formattedDate}.pdf`
         };
 
-        // 6. 使用 POST 方法安全發送至 Google Apps Script
+        // 6. 發送到 Google Apps Script
         const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
             method: 'POST',
             mode: 'cors',
             headers: {
-                'Content-Type': 'text/plain;charset=utf-8' // 使用 text/plain 可以完美繞過部分瀏覽器的 CORS 預檢攔截
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload)
         });
 
         const result = await response.json();
-        
+
         if (result.status === 'success') {
             alert('🎉 報告已成功遞交並生成 PDF 儲存至 Google Drive！');
             console.log('儲存成功：', result.fileUrl);
         } else {
-            alert('❌ 遞交失敗：' + result.message);
+            alert('❌ 遞交失敗：' + (result.message || '未知錯誤'));
         }
 
     } catch (error) {
-        console.error("發生錯誤:", error);
-        alert("儲存或上傳時發生系統錯誤，請檢查瀏覽器主控台 (F12)。");
+        console.error('發生錯誤:', error);
+        alert('⚠️ 儲存或上傳時發生錯誤，請檢查網絡連線。\n錯誤: ' + error.message);
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;
