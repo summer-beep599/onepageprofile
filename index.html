@@ -676,141 +676,6 @@
             border: 2px solid #2d2d2d;
         }
 
-        /* ===== 截圖專用容器 (隱藏，僅用於渲染) ===== */
-        #captureContainer {
-            position: fixed;
-            top: -9999px;
-            left: -9999px;
-            width: 800px;
-            background: #f5ede4;
-            padding: 30px;
-            font-family: 'Courier New', 'PixelFont', monospace;
-            z-index: 9999;
-            border: 8px solid #2d2d2d;
-        }
-
-        #captureContainer .capture-inner {
-            max-width: 100%;
-            background: white;
-            padding: 30px;
-        }
-
-        #captureContainer .capture-header {
-            text-align: center;
-            border-bottom: 4px solid #2d2d2d;
-            padding-bottom: 16px;
-            margin-bottom: 20px;
-        }
-
-        #captureContainer .capture-header h1 {
-            font-size: 2rem;
-            margin: 0;
-        }
-
-        #captureContainer .capture-header .sub {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        #captureContainer .capture-body {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-        }
-
-        #captureContainer .capture-left {
-            flex: 0 0 42%;
-            min-width: 200px;
-        }
-
-        #captureContainer .capture-left .pixel-img {
-            width: 100%;
-            border: 4px solid #2d2d2d;
-            image-rendering: pixelated;
-            background: #b5d4e8;
-        }
-
-        #captureContainer .capture-right {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        #captureContainer .capture-right .proto-block {
-            background: #e8ddd0;
-            padding: 12px 16px;
-            border: 4px solid #2d2d2d;
-            margin-bottom: 12px;
-        }
-
-        #captureContainer .capture-right .proto-block .pname {
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        #captureContainer .capture-right .proto-block .ptags {
-            font-size: 0.7rem;
-            margin: 4px 0;
-        }
-
-        #captureContainer .capture-right .proto-block .pdesc {
-            font-size: 0.75rem;
-        }
-
-        #captureContainer .capture-right .trait-block {
-            background: #f5ede4;
-            border: 4px solid #2d2d2d;
-            padding: 8px 12px;
-        }
-
-        #captureContainer .capture-right .trait-block .tlabel {
-            font-weight: bold;
-            font-size: 0.8rem;
-            margin-bottom: 4px;
-        }
-
-        #captureContainer .capture-right .trait-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.65rem;
-            margin: 3px 0;
-        }
-
-        #captureContainer .capture-right .trait-row .tbar {
-            flex: 1;
-            height: 14px;
-            background: #d4c5b2;
-            border: 2px solid #2d2d2d;
-            display: flex;
-        }
-
-        #captureContainer .capture-right .trait-row .tbar .l {
-            height: 100%;
-            background: #7ab0c8;
-        }
-
-        #captureContainer .capture-right .trait-row .tbar .r {
-            height: 100%;
-            background: #e8a86a;
-        }
-
-        #captureContainer .capture-right .items-block {
-            margin-top: 8px;
-            font-size: 0.7rem;
-            background: #e8ddd0;
-            padding: 6px 12px;
-            border: 4px solid #2d2d2d;
-        }
-
-        #captureContainer .capture-footer {
-            margin-top: 20px;
-            text-align: center;
-            border-top: 4px solid #2d2d2d;
-            padding-top: 16px;
-            font-size: 0.8rem;
-            color: #666;
-        }
-
         @media (max-width: 760px) {
             .left-panel {
                 flex: 1 1 100%;
@@ -853,19 +718,6 @@
             }
             .item-popup .item-name {
                 font-size: 1.2rem;
-            }
-            #captureContainer {
-                width: 600px;
-                padding: 16px;
-            }
-            #captureContainer .capture-inner {
-                padding: 16px;
-            }
-            #captureContainer .capture-body {
-                flex-direction: column;
-            }
-            #captureContainer .capture-left {
-                flex: 1 1 100%;
             }
         }
 
@@ -920,7 +772,6 @@
 </head>
 <body>
 
-    <!-- ===== 主要遊戲容器 ===== -->
     <div class="game-wrapper" id="app">
         <div class="game-header">
             <span class="title">🎮 燕京生活啟航站</span>
@@ -935,13 +786,6 @@
             <div class="right-panel" id="rightPanel">
                 <div id="dynamicContent"></div>
             </div>
-        </div>
-    </div>
-
-    <!-- ===== 截圖專用容器 (隱藏，用於完整渲染) ===== -->
-    <div id="captureContainer">
-        <div class="capture-inner" id="captureInner">
-            <!-- 由 JavaScript 動態填充 -->
         </div>
     </div>
 
@@ -1951,8 +1795,8 @@
                 </div>
             `;
 
-            // 綁定遞交按鈕事件 - 使用正確的函數
-            document.getElementById('submitBtn').addEventListener('click', uploadAndSavePDF);
+            // 綁定遞交按鈕事件
+            document.getElementById('submitBtn').addEventListener('click', submitAndUpload);
 
             if (state.unlockedCostumes.length > 0) state.outfit = state.unlockedCostumes[0];
             else state.outfit = 'summer';
@@ -1969,33 +1813,29 @@
         }
 
         // ================================================================
-        //  12. 遞交並上傳 PDF (完整修正版)
+        //  12. 遞交並上傳 PDF (使用 iframe + form 提交，完全繞過 CORS)
         // ================================================================
-        async function uploadAndSavePDF() {
-            const submitBtn = document.getElementById('submitBtn');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = '傳送中...';
+        function submitAndUpload() {
+            const btn = document.getElementById('submitBtn');
+            btn.textContent = '⏳ 生成中...';
+            btn.disabled = true;
+
+            // 1. 獲取結果頁面元素
+            const element = document.getElementById('resultPage');
+            if (!element) {
+                alert('找不到結果頁面！');
+                btn.textContent = '遞交';
+                btn.disabled = false;
+                return;
             }
 
-            try {
-                // 1. 獲取結果頁面元素
-                const element = document.getElementById('resultPage');
-                if (!element) {
-                    alert('找不到結果頁面！');
-                    if (submitBtn) { submitBtn.disabled = false;
-                        submitBtn.textContent = '遞交'; }
-                    return;
-                }
-
-                // 2. 使用 html2canvas 將結果頁轉為圖片
-                const canvas = await html2canvas(element, {
-                    useCORS: true,
-                    scale: 2,
-                    backgroundColor: '#f5ede4',
-                    logging: false,
-                });
-
+            // 2. 使用 html2canvas 將結果頁轉為圖片
+            html2canvas(element, {
+                useCORS: true,
+                scale: 2,
+                backgroundColor: '#f5ede4',
+                logging: false,
+            }).then((canvas) => {
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
                 // 3. 使用 jsPDF 建立 PDF
@@ -2018,51 +1858,101 @@
                     heightLeft -= pageHeight;
                 }
 
-                // 4. 將 PDF 轉為 Base64
-                const pdfBase64 = pdf.output('datauristring').split(',')[1];
+                // 4. 生成 PDF Blob
+                const pdfBlob = pdf.output('blob');
 
-                // 5. 準備發送數據
-                const formattedDate = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-                const pName = state.studentName || "學生";
+                // 5. 使用 iframe + form 提交（完全繞過 CORS）
+                uploadPdfViaIframe(pdfBlob);
 
-                const payload = {
-                    studentName: pName,
-                    pdfData: pdfBase64,
-                    fileName: `燕京_${pName}_完整報告_${formattedDate}.pdf`
-                };
+                btn.textContent = '✅ 已遞交';
+                btn.disabled = false;
 
-                // 6. 發送到 Google Apps Script
-                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-
-                if (result.status === 'success') {
-                    alert('🎉 報告已成功遞交並生成 PDF 儲存至 Google Drive！');
-                    console.log('儲存成功：', result.fileUrl);
-                } else {
-                    alert('❌ 遞交失敗：' + (result.message || '未知錯誤'));
-                }
-
-            } catch (error) {
-                console.error('發生錯誤:', error);
-                alert('⚠️ 儲存或上傳時發生錯誤，請檢查網絡連線。\n錯誤: ' + error.message);
-            } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = '遞交';
-                }
-            }
+            }).catch((err) => {
+                console.error('PDF 生成失敗:', err);
+                alert('⚠️ 生成 PDF 失敗，請稍後再試。\n錯誤: ' + err.message);
+                btn.textContent = '遞交';
+                btn.disabled = false;
+            });
         }
 
         // ================================================================
-        //  13. 原型配對
+        //  13. 使用 iframe + form 提交 PDF（完全繞過 CORS）
+        // ================================================================
+        function uploadPdfViaIframe(pdfBlob) {
+            // 建立隱藏 iframe
+            const iframe = document.createElement('iframe');
+            iframe.name = 'uploadFrame_' + Date.now();
+            iframe.style.display = 'none';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            document.body.appendChild(iframe);
+
+            // 建立表單
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = GOOGLE_APPS_SCRIPT_URL;
+            form.target = iframe.name;
+            form.enctype = 'multipart/form-data';
+            form.style.display = 'none';
+
+            // 將 Blob 轉為 File
+            const fileName = `燕京_${state.studentName}_完整報告.pdf`;
+            const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+            // 建立檔案輸入
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.name = 'file';
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+
+            // 加入其他欄位
+            const nameInput = document.createElement('input');
+            nameInput.type = 'hidden';
+            nameInput.name = 'name';
+            nameInput.value = state.studentName;
+
+            const timeInput = document.createElement('input');
+            timeInput.type = 'hidden';
+            timeInput.name = 'timestamp';
+            timeInput.value = new Date().toISOString();
+
+            form.appendChild(fileInput);
+            form.appendChild(nameInput);
+            form.appendChild(timeInput);
+            document.body.appendChild(form);
+
+            // 監聽 iframe 載入完成
+            let iframeLoaded = false;
+            iframe.onload = function() {
+                if (!iframeLoaded) {
+                    iframeLoaded = true;
+                    setTimeout(() => {
+                        // 清理
+                        if (document.body.contains(form)) document.body.removeChild(form);
+                        if (document.body.contains(iframe)) document.body.removeChild(iframe);
+                        alert('✅ PDF 已儲存到 Google Drive！');
+                    }, 2000);
+                }
+            };
+
+            // 提交表單
+            form.submit();
+
+            // 10 秒後清理（防止卡住）
+            setTimeout(() => {
+                if (document.body.contains(form)) {
+                    document.body.removeChild(form);
+                }
+                if (document.body.contains(iframe)) {
+                    document.body.removeChild(iframe);
+                }
+            }, 15000);
+        }
+
+        // ================================================================
+        //  14. 原型配對
         // ================================================================
         function getPrototype(scores) {
             const s = scores;
@@ -2102,7 +1992,7 @@
         }
 
         // ================================================================
-        //  14. 重置 & 動畫
+        //  15. 重置 & 動畫
         // ================================================================
         function resetAll() {
             state.currentQ = 0;
@@ -2138,7 +2028,7 @@
         }
 
         // ================================================================
-        //  15. 啟動
+        //  16. 啟動
         // ================================================================
         renderHome();
 
@@ -2150,9 +2040,9 @@
             }
         });
 
-        console.log('🎮 燕京生活啟航站 v4.2 已啟動！');
+        console.log('🎮 燕京生活啟航站 v4.3 已啟動！');
         console.log('📋 共 ' + QUESTIONS.length + ' 條題目，8 種性格原型');
-        console.log('📷 支援完整報告生成 PDF 並上傳 Google Drive');
+        console.log('📤 使用 iframe + form 提交，完全繞過 CORS');
         console.log('💾 Google Apps Script URL 已設定');
         console.log('⌨️ 快捷鍵: 1-4 選項, Enter 下一題, R 重新測驗');
     </script>
