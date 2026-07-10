@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>燕京生活啟航站 - 像素冒險</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- html2canvas 用於截圖 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+    </script>
+    <!-- jsPDF 用於生成 PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
     </script>
     <style>
         /* ===== 所有樣式保持不變 ===== */
@@ -960,7 +964,7 @@
 
     <script>
         // ================================================================
-        //  1. Google Apps Script URL
+        //  1. Google Apps Script URL (已更新)
         // ================================================================
         const GOOGLE_APPS_SCRIPT_URL =
             'https://script.google.com/macros/s/AKfycbyoVabs0mJDFX_qu_D7WEgI9ixWsKV66mQ3yhnvCKw3lgYOb-eb48rU6h5Tx41mfic/exec';
@@ -1962,7 +1966,8 @@
                     <div class="result-actions">
                         <button class="pixel-btn warning" id="retakeBtn">🔄 重新測驗</button>
                         <button class="pixel-btn primary" id="printBtn">📄 列印/PDF</button>
-                        <button class="pixel-btn secondary" id="saveImageBtn">📷 儲存完整報告為圖片</button>
+                        <button class="pixel-btn secondary" id="saveImageBtn">📷 儲存為圖片</button>
+                        <button class="pixel-btn primary" id="savePdfBtn">💾 儲存PDF到Google Drive</button>
                     </div>
                 </div>
             `;
@@ -1971,7 +1976,11 @@
                     resetAll(); });
             document.getElementById('printBtn').addEventListener('click', () => window.print());
 
+            // 綁定儲存圖片按鈕 (原有功能)
             document.getElementById('saveImageBtn').addEventListener('click', captureFullReport);
+
+            // 綁定儲存 PDF 按鈕 (新功能)
+            document.getElementById('savePdfBtn').addEventListener('click', capturePdfAndUpload);
 
             if (state.unlockedCostumes.length > 0) state.outfit = state.unlockedCostumes[0];
             else state.outfit = 'summer';
@@ -1988,7 +1997,7 @@
         }
 
         // ================================================================
-        //  12. 儲存到 Google Drive (完整報告圖片 - 無道具/服裝)
+        //  12. 儲存為圖片 (原有功能，保留)
         // ================================================================
         function captureFullReport() {
             const btn = document.getElementById('saveImageBtn');
@@ -2002,11 +2011,9 @@
             const finalScores = state.finalScores || {};
             const proto = state.proto || PROTOTYPES[0];
 
-            // 檢查是否選擇了欺凌選項
             const q6Answer = state.answers[5];
             const isBullyChoice = (q6Answer.optionIndex === 3);
 
-            // 生成特質長條 (用於截圖)
             let traitRows = '';
             TRAIT_PAIRS.forEach(pair => {
                 const left = pair.left,
@@ -2026,7 +2033,6 @@
                 `;
             });
 
-            // 生成三方面建議
             const adviceHtml = `
                 <div class="advice-block-capture">
                     <h4>📖 學業選科面</h4>
@@ -2042,7 +2048,6 @@
                 </div>
             `;
 
-            // 關懷提示（如有需要）
             let careHtml = '';
             if (isBullyChoice) {
                 careHtml = `
@@ -2052,13 +2057,11 @@
                 `;
             }
 
-            // 鼓勵語句
             const encouragements = ['你已經很勇敢地面對新挑戰了！', '每一步成長都值得被肯定！', '記住，你從來不是一個人。', '相信自己，你比你想像中更強大！', '燕京書院以你為榮！',
                 '你的獨特之處，就是你的力量！'
             ];
             const randomEncourage = encouragements[Math.floor(Math.random() * encouragements.length)];
 
-            // 填滿截圖容器（不含道具和服裝）
             captureInner.innerHTML = `
                 <div class="capture-header">
                     <h1>🎓 ${state.studentName} 嘅中學生活</h1>
@@ -2107,24 +2110,19 @@
                 windowHeight: captureInner.scrollHeight,
             }).then((imgCanvas) => {
                 const imgData = imgCanvas.toDataURL('image/png');
-
-                // 下載到本地
                 const link = document.createElement('a');
                 link.download = `燕京_${state.studentName}_完整報告.png`;
                 link.href = imgData;
                 link.click();
-
-                // 上傳到 Google Drive
                 uploadImageToDrive(imgData);
-
                 captureContainer.style.display = 'none';
-                btn.textContent = '📷 儲存完整報告為圖片';
+                btn.textContent = '📷 儲存為圖片';
                 btn.disabled = false;
             }).catch((err) => {
                 console.error('截圖失敗:', err);
                 alert('⚠️ 截圖失敗，請嘗試使用「列印/PDF」功能。');
                 captureContainer.style.display = 'none';
-                btn.textContent = '📷 儲存完整報告為圖片';
+                btn.textContent = '📷 儲存為圖片';
                 btn.disabled = false;
             });
         }
@@ -2138,7 +2136,6 @@
                 ia[i] = byteString.charCodeAt(i);
             }
             const blob = new Blob([ab], { type: mimeString });
-
             const formData = new FormData();
             formData.append('file', blob, `燕京_${state.studentName}_完整報告.png`);
             formData.append('name', state.studentName);
@@ -2149,7 +2146,7 @@
                 mode: 'no-cors',
                 body: formData,
             }).then(() => {
-                alert('✅ 完整報告圖片已成功儲存到 Google Drive！');
+                alert('✅ 圖片已嘗試儲存到 Google Drive（請檢查 Drive 是否收到檔案）');
             }).catch((err) => {
                 console.error('上傳失敗:', err);
                 alert('⚠️ 圖片上傳失敗，但圖片已下載到本地。');
@@ -2157,7 +2154,208 @@
         }
 
         // ================================================================
-        //  13. 原型配對
+        //  13. 儲存為 PDF 並上傳到 Google Drive (新功能)
+        // ================================================================
+        function capturePdfAndUpload() {
+            const btn = document.getElementById('savePdfBtn');
+            btn.textContent = '⏳ 生成PDF中...';
+            btn.disabled = true;
+
+            const captureContainer = document.getElementById('captureContainer');
+            const captureInner = document.getElementById('captureInner');
+
+            const canvasData = canvas.toDataURL('image/png');
+            const finalScores = state.finalScores || {};
+            const proto = state.proto || PROTOTYPES[0];
+
+            const q6Answer = state.answers[5];
+            const isBullyChoice = (q6Answer.optionIndex === 3);
+
+            let traitRows = '';
+            TRAIT_PAIRS.forEach(pair => {
+                const left = pair.left,
+                    right = pair.right;
+                const lVal = finalScores[left] || 8;
+                const rVal = finalScores[right] || 8;
+                const lPct = (lVal / 16) * 100;
+                const rPct = (rVal / 16) * 100;
+                traitRows += `
+                    <div style="display:flex; align-items:center; gap:6px; font-size:0.7rem; margin:3px 0;">
+                        <span style="min-width:50px;">${left}</span>
+                        <span style="min-width:18px; text-align:center;">${lVal}</span>
+                        <div style="flex:1; height:14px; background:#d4c5b2; border:2px solid #2d2d2d; display:flex;">
+                            <div style="height:100%; width:${lPct}%; background:#7ab0c8;"></div>
+                            <div style="height:100%; width:${rPct}%; background:#e8a86a;"></div>
+                        </div>
+                        <span style="min-width:18px; text-align:center;">${rVal}</span>
+                        <span style="min-width:50px;">${right}</span>
+                    </div>
+                `;
+            });
+
+            const adviceHtml = `
+                <div style="margin-top:8px; font-size:0.7rem; background:#f5ede4; padding:8px 12px; border:4px solid #2d2d2d; border-left:12px solid #7ab87a;">
+                    <h4 style="font-size:0.75rem; margin-bottom:2px;">📖 學業選科面</h4>
+                    <p>${proto.advice.academic}</p>
+                </div>
+                <div style="margin-top:4px; font-size:0.7rem; background:#f5ede4; padding:8px 12px; border:4px solid #2d2d2d; border-left:12px solid #7ab87a;">
+                    <h4 style="font-size:0.75rem; margin-bottom:2px;">🤝 社交與人際面</h4>
+                    <p>${proto.advice.social}</p>
+                </div>
+                <div style="margin-top:4px; font-size:0.7rem; background:#f5ede4; padding:8px 12px; border:4px solid #2d2d2d; border-left:12px solid #7ab87a;">
+                    <h4 style="font-size:0.75rem; margin-bottom:2px;">💖 情緒管理面</h4>
+                    <p>${proto.advice.emotion}</p>
+                </div>
+            `;
+
+            let careHtml = '';
+            if (isBullyChoice) {
+                careHtml = `
+                    <div style="background:#f5d8d0; border:4px solid #c45a5a; padding:8px 12px; margin-top:8px; font-size:0.7rem; border-left:12px solid #c45a5a;">
+                        ⚠️ <strong>關懷提示：</strong>你嘅選擇反映你當下可能感到不安或害怕。如果你喺校園遇到困難或壓力，記住可以搵老師、輔導員或社工傾訴，你唔係一個人面對嘅。❤️
+                    </div>
+                `;
+            }
+
+            const encouragements = ['你已經很勇敢地面對新挑戰了！', '每一步成長都值得被肯定！', '記住，你從來不是一個人。', '相信自己，你比你想像中更強大！', '燕京書院以你為榮！',
+                '你的獨特之處，就是你的力量！'
+            ];
+            const randomEncourage = encouragements[Math.floor(Math.random() * encouragements.length)];
+
+            captureInner.innerHTML = `
+                <div style="max-width:100%; background:white; padding:30px; font-family:'Courier New',monospace;">
+                    <div style="text-align:center; border-bottom:4px solid #2d2d2d; padding-bottom:16px; margin-bottom:20px;">
+                        <h1 style="font-size:2rem; margin:0;">🎓 ${state.studentName} 嘅中學生活</h1>
+                        <div style="font-size:0.9rem; color:#666;">🏫 中華基督教會燕京書院 · 學生支援部</div>
+                        <div style="font-size:0.7rem; margin-top:4px; color:#666;">📅 ${new Date().toLocaleDateString('zh-HK')}</div>
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:24px;">
+                        <div style="flex:0 0 42%; min-width:200px;">
+                            <img src="${canvasData}" style="width:100%; border:4px solid #2d2d2d; image-rendering:pixelated; background:#b5d4e8;">
+                        </div>
+                        <div style="flex:1; min-width:200px;">
+                            <div style="background:#e8ddd0; padding:12px 16px; border:4px solid #2d2d2d; margin-bottom:12px;">
+                                <div style="font-size:1.2rem; font-weight:bold;">🏆 ${proto.id}</div>
+                                <div style="font-size:0.7rem; margin:4px 0;">${proto.tags.join(' · ')}</div>
+                                <div style="font-size:0.75rem;">${proto.desc}</div>
+                            </div>
+                            <div style="background:#f5ede4; border:4px solid #2d2d2d; padding:8px 12px;">
+                                <div style="font-weight:bold; font-size:0.8rem; margin-bottom:4px;">📊 特質分數</div>
+                                ${traitRows}
+                            </div>
+                            ${careHtml}
+                            ${adviceHtml}
+                            <div style="margin-top:8px; font-size:0.7rem; background:#f5ede4; padding:6px 12px; border:4px solid #2d2d2d; text-align:center;">
+                                🌟 ${randomEncourage}
+                            </div>
+                            <div style="margin-top:4px; font-size:0.65rem; background:#e8ddd0; padding:4px 12px; border:4px solid #2d2d2d; text-align:center;">
+                                🏫 校園資源：若有需要，可隨時找 <strong>老師、社工和輔導員</strong> 聊天 ❤️
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:20px; text-align:center; border-top:4px solid #2d2d2d; padding-top:16px; font-size:0.8rem; color:#666;">
+                        ✦ 燕京生活啟航站 · 中一學生特質測驗 ✦
+                    </div>
+                </div>
+            `;
+
+            captureContainer.style.display = 'block';
+
+            html2canvas(captureInner, {
+                scale: 2.5,
+                useCORS: true,
+                backgroundColor: '#f5ede4',
+                logging: false,
+                width: captureInner.scrollWidth,
+                height: captureInner.scrollHeight,
+                windowWidth: captureInner.scrollWidth,
+                windowHeight: captureInner.scrollHeight,
+            }).then((imgCanvas) => {
+                const imgData = imgCanvas.toDataURL('image/jpeg', 0.95);
+
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (imgCanvas.height / imgCanvas.width) * pdfWidth;
+
+                let heightLeft = pdfHeight;
+                let position = 0;
+                const pageHeight = pdf.internal.pageSize.getHeight();
+
+                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft > 0) {
+                    position = heightLeft - pdfHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                const pdfBlob = pdf.output('blob');
+
+                const link = document.createElement('a');
+                link.download = `燕京_${state.studentName}_完整報告.pdf`;
+                link.href = URL.createObjectURL(pdfBlob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+
+                // 上傳 PDF 到 Google Drive
+                uploadPdfToDrive(pdfBlob);
+
+                captureContainer.style.display = 'none';
+                btn.textContent = '💾 儲存PDF到Google Drive';
+                btn.disabled = false;
+
+            }).catch((err) => {
+                console.error('PDF 生成失敗:', err);
+                alert('⚠️ PDF 生成失敗，請嘗試使用「列印/PDF」功能。');
+                captureContainer.style.display = 'none';
+                btn.textContent = '💾 儲存PDF到Google Drive';
+                btn.disabled = false;
+            });
+        }
+
+        // ================================================================
+        //  14. 上傳 PDF 到 Google Drive
+        // ================================================================
+        function uploadPdfToDrive(pdfBlob) {
+            const formData = new FormData();
+            formData.append('file', pdfBlob, `燕京_${state.studentName}_完整報告.pdf`);
+            formData.append('name', state.studentName);
+            formData.append('timestamp', new Date().toISOString());
+
+            // 先嘗試 cors 模式
+            fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'cors',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('✅ PDF 已成功儲存到 Google Drive！');
+                } else {
+                    alert('⚠️ 儲存失敗：' + (result.message || '未知錯誤'));
+                }
+            })
+            .catch((err) => {
+                console.error('CORS 上傳失敗，嘗試 no-cors:', err);
+                // 如果 cors 失敗，嘗試 no-cors
+                fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: formData,
+                }).then(() => {
+                    alert('✅ PDF 已嘗試儲存到 Google Drive（請檢查 Drive 是否收到檔案）');
+                }).catch(() => {
+                    alert('⚠️ PDF 上傳失敗，但已下載到本地。請檢查 Google Apps Script 設定。');
+                });
+            });
+        }
+
+        // ================================================================
+        //  15. 原型配對
         // ================================================================
         function getPrototype(scores) {
             const s = scores;
@@ -2197,7 +2395,7 @@
         }
 
         // ================================================================
-        //  14. 重置 & 動畫
+        //  16. 重置 & 動畫
         // ================================================================
         function resetAll() {
             state.currentQ = 0;
@@ -2233,7 +2431,7 @@
         }
 
         // ================================================================
-        //  15. 啟動
+        //  17. 啟動
         // ================================================================
         renderHome();
 
@@ -2245,10 +2443,10 @@
             }
         });
 
-        console.log('🎮 燕京生活啟航站 v4.2 已啟動！');
+        console.log('🎮 燕京生活啟航站 v5.0 已啟動！');
         console.log('📋 共 ' + QUESTIONS.length + ' 條題目，8 種性格原型');
-        console.log('📷 儲存到 Google Drive 的圖片已移除道具和服裝，加入解析及三方面建議');
-        console.log('💾 Google Apps Script URL 已設定');
+        console.log('💾 支援儲存 PDF 到 Google Drive');
+        console.log('📷 支援儲存圖片到 Google Drive');
         console.log('⌨️ 快捷鍵: 1-4 選項, Enter 下一題, R 重新測驗');
     </script>
 
