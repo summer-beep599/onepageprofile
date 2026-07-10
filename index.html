@@ -1846,7 +1846,7 @@
         }
 
         // ================================================================
-        //  11. 結果頁
+        //  11. 結果頁 (只有一個儲存按鈕)
         // ================================================================
         function showResult() {
             state.page = 'result';
@@ -1980,20 +1980,10 @@
                     <div class="answer-log"><strong>📝 作答記錄</strong><div id="answerLogList">${logHtml}</div></div>
                     <div style="text-align:center; font-size:0.65rem; color:#6a5a4a; border-top:3px solid #d4c5b2; padding-top:6px; margin-top:4px;">🏫 中華基督教會燕京書院 · 學生支援部</div>
                     <div class="result-actions">
-                        <button class="pixel-btn warning" id="retakeBtn">🔄 重新測驗</button>
-                        <button class="pixel-btn primary" id="printBtn">📄 列印/PDF</button>
-                        <button class="pixel-btn secondary" id="saveImageBtn">📷 儲存為圖片</button>
-                        <button class="pixel-btn primary" id="savePdfBtn">💾 儲存PDF到Google Drive</button>
+                        <button class="pixel-btn primary" id="savePdfBtn">💾 儲存到 Google Drive</button>
                     </div>
                 </div>
             `;
-
-            document.getElementById('retakeBtn').addEventListener('click', () => { if (confirm('重新測驗會清除所有進度，確定嗎？'))
-                    resetAll(); });
-            document.getElementById('printBtn').addEventListener('click', () => window.print());
-
-            // 綁定儲存圖片按鈕 (原有功能)
-            document.getElementById('saveImageBtn').addEventListener('click', captureFullReport);
 
             // 綁定儲存 PDF 按鈕 (新功能)
             document.getElementById('savePdfBtn').addEventListener('click', capturePdfAndUpload);
@@ -2013,168 +2003,11 @@
         }
 
         // ================================================================
-        //  12. 儲存為圖片 (原有功能，保留)
-        // ================================================================
-        function captureFullReport() {
-            const btn = document.getElementById('saveImageBtn');
-            btn.textContent = '⏳ 生成中...';
-            btn.disabled = true;
-
-            const captureContainer = document.getElementById('captureContainer');
-            const captureInner = document.getElementById('captureInner');
-
-            const canvasData = canvas.toDataURL('image/png');
-            const finalScores = state.finalScores || {};
-            const proto = state.proto || PROTOTYPES[0];
-
-            const q6Answer = state.answers[5];
-            const isBullyChoice = (q6Answer.optionIndex === 3);
-
-            let traitRows = '';
-            TRAIT_PAIRS.forEach(pair => {
-                const left = pair.left,
-                    right = pair.right;
-                const lVal = finalScores[left] || 8;
-                const rVal = finalScores[right] || 8;
-                const lPct = (lVal / 16) * 100;
-                const rPct = (rVal / 16) * 100;
-                traitRows += `
-                    <div class="trait-row">
-                        <span style="min-width:50px;">${left}</span>
-                        <span style="min-width:18px; text-align:center;">${lVal}</span>
-                        <div class="tbar"><div class="l" style="width:${lPct}%;"></div><div class="r" style="width:${rPct}%;"></div></div>
-                        <span style="min-width:18px; text-align:center;">${rVal}</span>
-                        <span style="min-width:50px;">${right}</span>
-                    </div>
-                `;
-            });
-
-            const adviceHtml = `
-                <div class="advice-block-capture">
-                    <h4>📖 學業選科面</h4>
-                    <p>${proto.advice.academic}</p>
-                </div>
-                <div class="advice-block-capture">
-                    <h4>🤝 社交與人際面</h4>
-                    <p>${proto.advice.social}</p>
-                </div>
-                <div class="advice-block-capture">
-                    <h4>💖 情緒管理面</h4>
-                    <p>${proto.advice.emotion}</p>
-                </div>
-            `;
-
-            let careHtml = '';
-            if (isBullyChoice) {
-                careHtml = `
-                    <div class="care-note-capture">
-                        ⚠️ <strong>關懷提示：</strong>你嘅選擇反映你當下可能感到不安或害怕。如果你喺校園遇到困難或壓力，記住可以搵老師、輔導員或社工傾訴，你唔係一個人面對嘅。❤️
-                    </div>
-                `;
-            }
-
-            const encouragements = ['你已經很勇敢地面對新挑戰了！', '每一步成長都值得被肯定！', '記住，你從來不是一個人。', '相信自己，你比你想像中更強大！', '燕京書院以你為榮！',
-                '你的獨特之處，就是你的力量！'
-            ];
-            const randomEncourage = encouragements[Math.floor(Math.random() * encouragements.length)];
-
-            captureInner.innerHTML = `
-                <div class="capture-header">
-                    <h1>🎓 ${state.studentName} 嘅中學生活</h1>
-                    <div class="sub">🏫 中華基督教會燕京書院 · 學生支援部</div>
-                    <div class="sub" style="font-size:0.7rem; margin-top:4px;">📅 ${new Date().toLocaleDateString('zh-HK')}</div>
-                </div>
-                <div class="capture-body">
-                    <div class="capture-left">
-                        <img src="${canvasData}" class="pixel-img" alt="像素場景">
-                    </div>
-                    <div class="capture-right">
-                        <div class="proto-block">
-                            <div class="pname">🏆 ${proto.id}</div>
-                            <div class="ptags">${proto.tags.join(' · ')}</div>
-                            <div class="pdesc">${proto.desc}</div>
-                        </div>
-                        <div class="trait-block">
-                            <div class="tlabel">📊 特質分數</div>
-                            ${traitRows}
-                        </div>
-                        ${careHtml}
-                        ${adviceHtml}
-                        <div style="margin-top:8px; font-size:0.7rem; background:#f5ede4; padding:6px 12px; border:4px solid #2d2d2d; text-align:center;">
-                            🌟 ${randomEncourage}
-                        </div>
-                        <div style="margin-top:4px; font-size:0.65rem; background:#e8ddd0; padding:4px 12px; border:4px solid #2d2d2d; text-align:center;">
-                            🏫 校園資源：若有需要，可隨時找 <strong>老師、社工和輔導員</strong> 聊天 ❤️
-                        </div>
-                    </div>
-                </div>
-                <div class="capture-footer">
-                    ✦ 燕京生活啟航站 · 中一學生特質測驗 ✦
-                </div>
-            `;
-
-            captureContainer.style.display = 'block';
-
-            html2canvas(captureInner, {
-                scale: 2.5,
-                useCORS: true,
-                backgroundColor: '#f5ede4',
-                logging: false,
-                width: captureInner.scrollWidth,
-                height: captureInner.scrollHeight,
-                windowWidth: captureInner.scrollWidth,
-                windowHeight: captureInner.scrollHeight,
-            }).then((imgCanvas) => {
-                const imgData = imgCanvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.download = `燕京_${state.studentName}_完整報告.png`;
-                link.href = imgData;
-                link.click();
-                uploadImageToDrive(imgData);
-                captureContainer.style.display = 'none';
-                btn.textContent = '📷 儲存為圖片';
-                btn.disabled = false;
-            }).catch((err) => {
-                console.error('截圖失敗:', err);
-                alert('⚠️ 截圖失敗，請嘗試使用「列印/PDF」功能。');
-                captureContainer.style.display = 'none';
-                btn.textContent = '📷 儲存為圖片';
-                btn.disabled = false;
-            });
-        }
-
-        function uploadImageToDrive(imgData) {
-            const byteString = atob(imgData.split(',')[1]);
-            const mimeString = imgData.split(',')[0].split(':')[1].split(';')[0];
-            const ab = new ArrayBuffer(byteString.length);
-            const ia = new Uint8Array(ab);
-            for (let i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
-            }
-            const blob = new Blob([ab], { type: mimeString });
-            const formData = new FormData();
-            formData.append('file', blob, `燕京_${state.studentName}_完整報告.png`);
-            formData.append('name', state.studentName);
-            formData.append('timestamp', new Date().toISOString());
-
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: formData,
-            }).then(() => {
-                alert('✅ 圖片已嘗試儲存到 Google Drive（請檢查 Drive 是否收到檔案）');
-            }).catch((err) => {
-                console.error('上傳失敗:', err);
-                alert('⚠️ 圖片上傳失敗，但圖片已下載到本地。');
-            });
-        }
-
-        // ================================================================
-        //  13. 儲存為 PDF 並上傳到 Google Drive (包含作答記錄)
+        //  12. 儲存為 PDF 並上傳到 Google Drive (包含作答記錄)
         // ================================================================
         function capturePdfAndUpload() {
             const btn = document.getElementById('savePdfBtn');
-            btn.textContent = '⏳ 生成PDF中...';
+            btn.textContent = '⏳ 生成中...';
             btn.disabled = true;
 
             const captureContainer = document.getElementById('captureContainer');
@@ -2210,7 +2043,7 @@
                 `;
             });
 
-            // --- 新增：生成作答記錄 (僅顯示選項字母) ---
+            // 生成作答記錄 (僅顯示選項字母)
             let answerLogHtml = '';
             QUESTIONS.forEach((q, idx) => {
                 const ans = state.answers[idx];
@@ -2218,7 +2051,7 @@
                 if (ans.optionIndex !== null) {
                     choice = q.options[ans.optionIndex].label;
                 }
-                answerLogHtml += `<span class="log-item"><strong>Q${idx+1}</strong>: ${choice}</span>`;
+                answerLogHtml += `<span style="display:inline-block; margin-right:8px;"><strong>Q${idx+1}</strong>: ${choice}</span>`;
             });
 
             const adviceHtml = `
@@ -2272,7 +2105,7 @@
                                 <div style="font-weight:bold; font-size:0.8rem; margin-bottom:4px;">📊 特質分數</div>
                                 ${traitRows}
                             </div>
-                            <!-- 作答記錄 (僅選項字母) -->
+                            <!-- 作答記錄 -->
                             <div style="margin-top:8px; background:#f5ede4; border:4px solid #2d2d2d; padding:6px 12px; display:flex; flex-wrap:wrap; gap:4px 12px; font-size:0.6rem;">
                                 <strong style="width:100%; font-size:0.7rem; margin-bottom:2px;">📝 作答記錄</strong>
                                 ${answerLogHtml}
@@ -2328,68 +2161,105 @@
 
                 const pdfBlob = pdf.output('blob');
 
+                // 直接下載到本地
                 const link = document.createElement('a');
                 link.download = `燕京_${state.studentName}_完整報告.pdf`;
                 link.href = URL.createObjectURL(pdfBlob);
                 link.click();
                 URL.revokeObjectURL(link.href);
 
-                // 上傳 PDF 到 Google Drive
+                // 上傳到 Google Drive (使用 iframe + form 提交，避開 CORS)
                 uploadPdfToDrive(pdfBlob);
 
                 captureContainer.style.display = 'none';
-                btn.textContent = '💾 儲存PDF到Google Drive';
+                btn.textContent = '💾 儲存到 Google Drive';
                 btn.disabled = false;
 
             }).catch((err) => {
                 console.error('PDF 生成失敗:', err);
-                alert('⚠️ PDF 生成失敗，請嘗試使用「列印/PDF」功能。');
+                alert('⚠️ PDF 生成失敗，請稍後再試。');
                 captureContainer.style.display = 'none';
-                btn.textContent = '💾 儲存PDF到Google Drive';
+                btn.textContent = '💾 儲存到 Google Drive';
                 btn.disabled = false;
             });
         }
 
         // ================================================================
-        //  14. 上傳 PDF 到 Google Drive
+        //  13. 上傳 PDF 到 Google Drive (使用 iframe + form 提交，避開 CORS)
         // ================================================================
         function uploadPdfToDrive(pdfBlob) {
-            const formData = new FormData();
-            formData.append('file', pdfBlob, `燕京_${state.studentName}_完整報告.pdf`);
-            formData.append('name', state.studentName);
-            formData.append('timestamp', new Date().toISOString());
+            // 建立一個隱藏的 iframe 來提交表單，完全避開 CORS 問題
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = GOOGLE_APPS_SCRIPT_URL;
+            form.target = 'uploadFrame';
+            form.enctype = 'multipart/form-data';
+            form.style.display = 'none';
 
-            // 先嘗試 cors 模式
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'cors',
-                body: formData,
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    alert('✅ PDF 已成功儲存到 Google Drive！');
-                } else {
-                    alert('⚠️ 儲存失敗：' + (result.message || '未知錯誤'));
+            // 建立隱藏 iframe
+            const iframe = document.createElement('iframe');
+            iframe.name = 'uploadFrame';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+
+            // 加入檔案
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.name = 'file';
+            fileInput.style.display = 'none';
+
+            // 將 Blob 轉為 File
+            const file = new File([pdfBlob], `燕京_${state.studentName}_完整報告.pdf`, { type: 'application/pdf' });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+
+            // 加入其他欄位
+            const nameInput = document.createElement('input');
+            nameInput.type = 'hidden';
+            nameInput.name = 'name';
+            nameInput.value = state.studentName;
+
+            const timeInput = document.createElement('input');
+            timeInput.type = 'hidden';
+            timeInput.name = 'timestamp';
+            timeInput.value = new Date().toISOString();
+
+            form.appendChild(fileInput);
+            form.appendChild(nameInput);
+            form.appendChild(timeInput);
+            document.body.appendChild(form);
+
+            // 監聽 iframe 載入完成
+            let iframeLoaded = false;
+            iframe.onload = function() {
+                if (!iframeLoaded) {
+                    iframeLoaded = true;
+                    setTimeout(() => {
+                        if (document.body.contains(form)) {
+                            document.body.removeChild(form);
+                        }
+                        if (document.body.contains(iframe)) {
+                            document.body.removeChild(iframe);
+                        }
+                        alert('✅ PDF 已儲存到 Google Drive！');
+                    }, 1000);
                 }
-            })
-            .catch((err) => {
-                console.error('CORS 上傳失敗，嘗試 no-cors:', err);
-                // 如果 cors 失敗，嘗試 no-cors
-                fetch(GOOGLE_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: formData,
-                }).then(() => {
-                    alert('✅ PDF 已嘗試儲存到 Google Drive（請檢查 Drive 是否收到檔案）');
-                }).catch(() => {
-                    alert('⚠️ PDF 上傳失敗，但已下載到本地。請檢查 Google Apps Script 設定。');
-                });
-            });
+            };
+
+            // 提交表單
+            form.submit();
+
+            // 如果 8 秒後沒有反應，提示用戶
+            setTimeout(() => {
+                if (document.body.contains(form)) {
+                    alert('⚠️ 上傳中，請稍候... 如果長時間沒反應，請檢查網絡連線。');
+                }
+            }, 8000);
         }
 
         // ================================================================
-        //  15. 原型配對
+        //  14. 原型配對
         // ================================================================
         function getPrototype(scores) {
             const s = scores;
@@ -2429,7 +2299,7 @@
         }
 
         // ================================================================
-        //  16. 重置 & 動畫
+        //  15. 重置 & 動畫
         // ================================================================
         function resetAll() {
             state.currentQ = 0;
@@ -2465,7 +2335,7 @@
         }
 
         // ================================================================
-        //  17. 啟動
+        //  16. 啟動
         // ================================================================
         renderHome();
 
@@ -2480,7 +2350,6 @@
         console.log('🎮 燕京生活啟航站 v5.1 已啟動！');
         console.log('📋 共 ' + QUESTIONS.length + ' 條題目，8 種性格原型');
         console.log('💾 支援儲存 PDF 到 Google Drive (包含作答記錄)');
-        console.log('📷 支援儲存圖片到 Google Drive');
         console.log('⌨️ 快捷鍵: 1-4 選項, Enter 下一題, R 重新測驗');
     </script>
 
