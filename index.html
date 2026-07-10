@@ -786,7 +786,12 @@
 
     <script>
         // ================================================================
-        //  1. 題庫 (10題)
+        //  1. Google Apps Script URL (已更新)
+        // ================================================================
+        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyoVabs0mJDFX_qu_D7WEgI9ixWsKV66mQ3yhnvCKw3lgYOb-eb48rU6h5Tx41mfic/exec';
+
+        // ================================================================
+        //  2. 題庫 (10題)
         // ================================================================
         const QUESTIONS = [{
             id: 1,
@@ -941,7 +946,7 @@
         }];
 
         // ================================================================
-        //  2. 原型定義
+        //  3. 原型定義
         // ================================================================
         const PROTOTYPES = [{
             id: '穩健型學霸',
@@ -1018,7 +1023,7 @@
         }];
 
         // ================================================================
-        //  3. 全域狀態
+        //  4. 全域狀態
         // ================================================================
         let state = {
             page: 'home',
@@ -1040,7 +1045,7 @@
         };
 
         // ================================================================
-        //  4. 特質對應
+        //  5. 特質對應
         // ================================================================
         const TRAIT_PAIRS = [
             { left: '安全感', right: '冒險感' },
@@ -1063,11 +1068,8 @@
             '利他': [1, 4, 5, 7]
         };
 
-        const GOOGLE_APPS_SCRIPT_URL =
-            'https://script.google.com/macros/s/AKfycbykJDMr693fxU7EWgYWVThJ6QNV8dSiJyo0uuOKQmNO73DwUxxgEaa0EyXGguI4EFSNjQ/exec';
-
         // ================================================================
-        //  5. DOM 參考
+        //  6. DOM 參考
         // ================================================================
         const canvas = document.getElementById('pixelCanvas');
         const ctx = canvas.getContext('2d');
@@ -1078,12 +1080,11 @@
         const itemDisplay = document.getElementById('itemDisplay');
 
         // ================================================================
-        //  6. 像素場景繪製 (Everskies 明亮粉彩風格, 30+ 元素)
+        //  7. 像素場景繪製 (精簡版 - 保留核心場景)
         // ================================================================
         const W = 640,
             H = 480;
 
-        // 粉彩調色盤
         const COLORS = {
             sky1: '#b5d4e8',
             sky2: '#d4e8f5',
@@ -1110,23 +1111,10 @@
         function drawScene(stage, frame) {
             ctx.clearRect(0, 0, W, H);
 
-            const sceneMap = {
-                'classroom': drawClassroom,
-                'camp': drawCamp,
-                'forest': drawForest,
-                'library': drawLibrary,
-                'community': drawCommunity,
-                'playground': drawPlayground,
-                'classroom_group': drawClassroomGroup,
-                'classroom_teacher': drawClassroomTeacher,
-                'home': drawHome,
-                'graduation': drawGraduation,
-                'result': drawResult,
-                'home_custom': drawHomeCustom,
-            };
-
-            const drawFunc = sceneMap[stage] || drawClassroom;
-            drawFunc(frame);
+            // 簡化版：每個場景只繪製核心背景和角色
+            drawSkyAndGround();
+            drawClouds(frame);
+            drawSceneElements(stage, frame);
 
             // 畫角色
             const charX = 320 + Math.sin(frame * 0.02) * 4;
@@ -1134,7 +1122,6 @@
             drawCharacter(ctx, charX, charY, frame);
         }
 
-        // ---- 通用背景 ----
         function drawSkyAndGround() {
             const grad = ctx.createLinearGradient(0, 0, 0, H);
             grad.addColorStop(0, COLORS.sky1);
@@ -1143,7 +1130,6 @@
             grad.addColorStop(1, COLORS.grass2);
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, W, H);
-
             ctx.fillStyle = COLORS.grass3;
             for (let i = 0; i < 40; i++) {
                 ctx.fillRect(i * 18 + (i % 3) * 4, H - 20 - (i % 2) * 3, 4, 6 + (i % 3) * 2);
@@ -1155,8 +1141,7 @@
                 [40, 30, 80, 20, 0.08],
                 [160, 50, 100, 16, 0.06],
                 [380, 20, 70, 18, 0.10],
-                [520, 55, 90, 14, 0.07],
-                [600, 35, 60, 16, 0.09]
+                [520, 55, 90, 14, 0.07]
             ];
             clouds.forEach((c, i) => {
                 const x = (c[0] + i * 80 + frame * c[4]) % 720 - 80;
@@ -1165,1489 +1150,229 @@
                 ctx.fillRect(x, y, c[2], c[3]);
                 ctx.fillRect(x + 18, y - 10, c[2] - 36, 14);
                 ctx.fillRect(x + 36, y - 18, c[2] - 64, 10);
-                ctx.fillRect(x + 10, y + 6, c[2] - 20, 8);
             });
         }
 
-        // ---- 場景繪製 (每個場景 30+ 元素) ----
-        function drawClassroom(frame) {
-            drawSkyAndGround();
-            drawClouds(frame);
-
-            // 1. 教室牆壁
-            ctx.fillStyle = COLORS.cream;
-            ctx.fillRect(0, 0, W, H - 60);
-            // 2. 地板
-            ctx.fillStyle = '#d4c8b8';
-            ctx.fillRect(0, H - 60, W, 60);
-            for (let i = 0; i < 30; i++) {
-                ctx.fillStyle = i % 2 === 0 ? '#c8b8a8' : '#d4c8b8';
-                ctx.fillRect(i * 24, H - 56, 12, 52);
-            }
-
-            // 3. 黑板
-            ctx.fillStyle = '#1a2a2a';
-            ctx.fillRect(40, 20, 320, 110);
-            ctx.fillStyle = '#2a4a4a';
-            ctx.fillRect(44, 24, 312, 102);
-            // 4. 黑板文字 (融入畫面)
-            ctx.fillStyle = '#d4d4c0';
-            ctx.font = '18px "Courier New", monospace';
-            ctx.fillText('📖 燕京書院', 80, 58);
-            ctx.font = '14px "Courier New", monospace';
-            ctx.fillText('新學年 · 新開始', 110, 88);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.fillRect(80, 100, 160, 4);
-            // 5. 粉筆
-            ctx.fillStyle = '#f5f0e8';
-            ctx.fillRect(340, 40, 20, 6);
-            ctx.fillStyle = '#d4b84a';
-            ctx.fillRect(344, 50, 16, 6);
-
-            // 6. 時鐘
-            ctx.fillStyle = COLORS.dark;
-            ctx.beginPath();
-            ctx.arc(400, 50, 28, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.white;
-            ctx.beginPath();
-            ctx.arc(400, 50, 22, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.dark;
-            const a = (frame * 0.02) % 360;
-            ctx.fillRect(397, 34, 4, 16);
-            ctx.fillRect(399, 32, 4, 4);
-
-            // 7-10. 書桌 x 4
-            for (let i = 0; i < 4; i++) {
-                const x = 80 + i * 110;
-                ctx.fillStyle = '#b8a090';
-                ctx.fillRect(x, H - 120, 70, 8);
-                ctx.fillRect(x + 6, H - 112, 6, 42);
-                ctx.fillRect(x + 58, H - 112, 6, 42);
-                ctx.fillStyle = '#d4c5b2';
-                ctx.fillRect(x + 4, H - 124, 62, 8);
-                // 書本
-                const colors = ['#6b4a3a', '#4a6a8a', '#c45a5a', '#6b9e6b'];
-                ctx.fillStyle = colors[i % 4];
-                ctx.fillRect(x + 10 + i * 4, H - 116, 12, 8);
-                ctx.fillStyle = colors[(i + 1) % 4];
-                ctx.fillRect(x + 26 + i * 3, H - 118, 12, 10);
-                ctx.fillStyle = colors[(i + 2) % 4];
-                ctx.fillRect(x + 42 + i * 2, H - 114, 12, 6);
-            }
-
-            // 11. 窗戶
-            ctx.fillStyle = '#8cb3d1';
-            ctx.fillRect(500, 20, 100, 70);
-            ctx.fillStyle = '#b8d4e8';
-            ctx.fillRect(504, 24, 92, 62);
-            ctx.fillStyle = COLORS.dark;
-            ctx.fillRect(550, 20, 4, 70);
-            ctx.fillRect(500, 54, 100, 4);
-
-            // 12-13. 窗簾
-            ctx.fillStyle = '#f5c8c8';
-            ctx.fillRect(498, 18, 8, 74);
-            ctx.fillRect(594, 18, 8, 74);
-
-            // 14. 盆栽
-            ctx.fillStyle = '#6a4a2a';
-            ctx.fillRect(620, H - 50, 20, 14);
-            ctx.fillStyle = '#4a8a3a';
-            ctx.beginPath();
-            ctx.arc(630, H - 56, 18, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#6a9a5a';
-            ctx.beginPath();
-            ctx.arc(626, H - 62, 12, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 15. 獎杯
-            ctx.fillStyle = '#d4b84a';
-            ctx.fillRect(580, H - 80, 12, 24);
-            ctx.fillRect(574, H - 86, 24, 8);
-            ctx.fillRect(582, H - 92, 8, 8);
-
-            // 16. 海報
-            ctx.fillStyle = '#7ab0c8';
-            ctx.fillRect(460, 120, 40, 50);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.font = '12px "Courier New", monospace';
-            ctx.fillText('🌟', 472, 144);
-            ctx.font = '10px "Courier New", monospace';
-            ctx.fillText('加油', 466, 164);
-
-            // 17-18. 書架
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(460, 180, 30, 80);
-            ctx.fillStyle = '#8a7a6a';
-            ctx.fillRect(464, 184, 22, 72);
-            for (let i = 0; i < 3; i++) {
-                ctx.fillStyle = ['#c45a5a', '#4a7a9a', '#6b9e6b'][i];
-                ctx.fillRect(466, 188 + i * 22, 18, 16);
-            }
-
-            // 19. 時鐘 (第二個)
-            ctx.fillStyle = COLORS.dark;
-            ctx.beginPath();
-            ctx.arc(120, 40, 16, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.white;
-            ctx.beginPath();
-            ctx.arc(120, 40, 12, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 20-25. 裝飾彩旗
-            for (let i = 0; i < 6; i++) {
-                const x = 20 + i * 28;
-                const colors = ['#f5c8c8', '#d4e8f5', '#b8e8c8', '#f5e8a8', '#d4c8e8', '#f5d8b8'];
-                ctx.fillStyle = colors[i % 6];
-                ctx.fillRect(x, 10, 14, 10);
-                ctx.fillRect(x + 4, 20, 6, 8);
-            }
-
-            // 26. 課堂規則牌
-            ctx.fillStyle = '#8a7a6a';
-            ctx.fillRect(20, H - 80, 80, 30);
-            ctx.fillStyle = '#f5ede4';
-            ctx.fillRect(24, H - 76, 72, 22);
-            ctx.fillStyle = COLORS.dark;
-            ctx.font = '8px "Courier New", monospace';
-            ctx.fillText('規則', 50, H - 60);
-
-            // 27. 書包 (掛在椅背)
-            ctx.fillStyle = '#5a3a2a';
-            ctx.fillRect(80, H - 100, 16, 20);
-            ctx.fillStyle = '#4a2a1a';
-            ctx.fillRect(84, H - 96, 8, 12);
-
-            // 28. 地球儀
-            ctx.fillStyle = '#7ab0c8';
-            ctx.beginPath();
-            ctx.arc(300, 40, 18, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#6a9a5a';
-            ctx.fillRect(296, 56, 8, 6);
-            ctx.fillStyle = '#4a6a3a';
-            ctx.fillRect(298, 62, 4, 4);
-
-            // 29-30. 花朵裝飾
-            for (let i = 0; i < 4; i++) {
-                const fx = 560 + i * 18;
-                const fy = H - 50 + (i % 2) * 4;
-                ctx.fillStyle = ['#f5c8c8', '#f5d8b8', '#d4c8e8', '#f5e8a8'][i % 4];
-                ctx.fillRect(fx, fy, 6, 6);
-                ctx.fillRect(fx + 2, fy - 4, 6, 6);
-                ctx.fillStyle = '#4a6a3a';
-                ctx.fillRect(fx + 3, fy + 6, 2, 8);
-            }
-        }
-
-        function drawCamp(frame) {
-            drawSkyAndGround();
-            drawClouds(frame);
-
-            // 1-8. 樹林
-            for (let i = 0; i < 8; i++) {
-                const x = 20 + i * 75;
-                const y = H - 80 - Math.sin(i * 1.1) * 40;
-                ctx.fillStyle = '#3a5a3a';
-                ctx.fillRect(x + 4, y + 10, 6, 30);
-                ctx.fillStyle = '#2a6a2a';
-                ctx.fillRect(x - 16, y - 12, 36, 26);
-                ctx.fillRect(x - 6, y - 32, 20, 22);
-                ctx.fillStyle = '#3a7a3a';
-                ctx.fillRect(x - 8, y - 20, 24, 14);
-            }
-
-            // 9-10. 帳篷 x 2
-            ctx.fillStyle = '#6a8a4a';
-            ctx.fillRect(380, H - 110, 100, 50);
-            ctx.fillStyle = '#5a7a3a';
-            ctx.fillRect(390, H - 120, 80, 16);
-            ctx.fillStyle = '#4a6a2a';
-            ctx.fillRect(430, H - 130, 16, 16);
-            ctx.fillStyle = '#3a4a2a';
-            ctx.fillRect(420, H - 90, 20, 20);
-
-            ctx.fillStyle = '#6a7a5a';
-            ctx.fillRect(140, H - 100, 80, 40);
-            ctx.fillStyle = '#5a6a4a';
-            ctx.fillRect(148, H - 108, 64, 12);
-            ctx.fillStyle = '#4a5a3a';
-            ctx.fillRect(170, H - 78, 16, 18);
-
-            // 11. 篝火
-            ctx.fillStyle = '#6a4a2a';
-            ctx.fillRect(280, H - 50, 40, 12);
-            ctx.fillStyle = '#8a5a2a';
-            ctx.fillRect(290, H - 60, 8, 16);
-            ctx.fillRect(302, H - 60, 8, 16);
-            const fh = 20 + Math.sin(frame * 0.15) * 8;
-            ctx.fillStyle = '#e8a040';
-            ctx.fillRect(292, H - 80 - fh, 16, fh + 20);
-            ctx.fillStyle = '#f0c040';
-            ctx.fillRect(296, H - 72 - fh * 0.6, 8, fh * 0.6);
-            ctx.fillStyle = '#f5d040';
-            ctx.fillRect(298, H - 68 - fh * 0.4, 4, fh * 0.4);
-
-            // 12. 木頭
-            ctx.fillStyle = '#6a4a2a';
-            ctx.fillRect(260, H - 46, 80, 8);
-            ctx.fillRect(255, H - 38, 90, 6);
-
-            // 13. 背包
-            ctx.fillStyle = '#4a6a3a';
-            ctx.fillRect(480, H - 80, 30, 30);
-            ctx.fillStyle = '#3a5a2a';
-            ctx.fillRect(486, H - 74, 18, 18);
-            ctx.fillStyle = '#2a4a1a';
-            ctx.fillRect(492, H - 68, 6, 8);
-
-            // 14. 水壺
-            ctx.fillStyle = '#4a7a9a';
-            ctx.fillRect(520, H - 70, 12, 20);
-            ctx.fillStyle = '#6a9aba';
-            ctx.fillRect(524, H - 74, 4, 8);
-
-            // 15. 旗幟
-            ctx.fillStyle = COLORS.dark;
-            ctx.fillRect(60, H - 120, 4, 40);
-            ctx.fillStyle = '#c45a5a';
-            ctx.fillRect(64, H - 120, 30, 16);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.font = '12px "Courier New", monospace';
-            ctx.fillText('⛺', 70, H - 108);
-
-            // 16-20. 星星
-            for (let i = 0; i < 10; i++) {
-                ctx.fillStyle = `rgba(255,255,200,${0.2 + Math.sin(frame*0.02+i)*0.1})`;
-                ctx.fillRect(20 + i * 60 + (i % 3) * 8, 10 + (i % 4) * 12, 4, 4);
-            }
-
-            // 21. 指南針
-            ctx.fillStyle = '#d4b84a';
-            ctx.beginPath();
-            ctx.arc(580, 40, 24, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.dark;
-            ctx.beginPath();
-            ctx.arc(580, 40, 18, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#c45a5a';
-            ctx.fillRect(578, 24, 4, 16);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.fillRect(578, 32, 4, 8);
-
-            // 22. 路牌
-            ctx.fillStyle = '#6a4a2a';
-            ctx.fillRect(540, H - 70, 6, 30);
-            ctx.fillStyle = '#8a6a4a';
-            ctx.fillRect(530, H - 74, 40, 8);
-            ctx.fillStyle = COLORS.dark;
-            ctx.font = '8px "Courier New", monospace';
-            ctx.fillText('營地', 540, H - 68);
-
-            // 23-26. 蘑菇 x 4
-            for (let i = 0; i < 4; i++) {
-                const mx = 50 + i * 50 + (i % 2) * 20;
-                const my = H - 30 - (i % 3) * 10;
-                ctx.fillStyle = '#c45a5a';
-                ctx.fillRect(mx, my - 4, 10, 4);
-                ctx.fillStyle = '#f5e8d0';
-                ctx.fillRect(mx + 2, my - 8, 6, 6);
-                ctx.fillStyle = '#f5f0e8';
-                ctx.fillRect(mx + 4, my - 6, 2, 2);
-            }
-
-            // 27-30. 花朵
-            for (let i = 0; i < 6; i++) {
-                const fx = 400 + i * 30 + (i % 2) * 10;
-                const fy = H - 20 - (i % 3) * 6;
-                ctx.fillStyle = ['#f5c8c8', '#f5d8b8', '#d4c8e8', '#f5e8a8'][i % 4];
-                ctx.fillRect(fx, fy, 4, 4);
-                ctx.fillRect(fx + 2, fy - 4, 4, 4);
-                ctx.fillStyle = '#4a6a3a';
-                ctx.fillRect(fx + 2, fy + 4, 2, 6);
-            }
-        }
-
-        function drawForest(frame) {
-            drawSkyAndGround();
-            drawClouds(frame);
-
-            // 1-10. 大量樹木
-            for (let i = 0; i < 10; i++) {
-                const x = 10 + i * 62;
-                const y = H - 70 - Math.sin(i * 0.7) * 50;
-                ctx.fillStyle = '#3a5a3a';
-                ctx.fillRect(x + 3, y + 10, 6, 30);
-                ctx.fillStyle = '#2a6a2a';
-                ctx.fillRect(x - 18, y - 12, 40, 28);
-                ctx.fillRect(x - 8, y - 34, 22, 24);
-                ctx.fillStyle = '#3a7a3a';
-                ctx.fillRect(x - 10, y - 22, 28, 16);
-            }
-
-            // 11. 繩索橋
-            ctx.strokeStyle = '#8a7a5a';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(40, 120);
-            ctx.quadraticCurveTo(200, 60, 380, 130);
-            ctx.stroke();
-            ctx.strokeStyle = '#6a5a3a';
-            ctx.lineWidth = 2;
-            for (let i = 0; i < 12; i++) {
-                const t = i / 12;
-                const x = 40 + t * 340 + Math.sin(t * Math.PI) * 20;
-                const y = 120 + t * 10 + Math.sin(t * Math.PI) * -40;
-                ctx.fillRect(x - 2, y - 12, 4, 24);
-            }
-
-            // 12-17. 蘑菇 x 6
-            for (let i = 0; i < 6; i++) {
-                const mx = 60 + i * 70 + (i % 3) * 20;
-                const my = H - 30 - (i % 2) * 20;
-                ctx.fillStyle = ['#c45a5a', '#d4b84a', '#f5c8c8', '#7ab0c8'][i % 4];
-                ctx.fillRect(mx, my - 6, 12, 6);
-                ctx.fillStyle = '#f5e8d0';
-                ctx.fillRect(mx + 2, my - 12, 8, 8);
-                ctx.fillStyle = '#f5f0e8';
-                ctx.fillRect(mx + 4, my - 10, 2, 2);
-                ctx.fillRect(mx + 8, my - 8, 2, 2);
-            }
-
-            // 18. 大指南針
-            ctx.fillStyle = '#d4b84a';
-            ctx.beginPath();
-            ctx.arc(580, 40, 30, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.dark;
-            ctx.beginPath();
-            ctx.arc(580, 40, 22, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#c45a5a';
-            ctx.fillRect(578, 18, 4, 22);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.fillRect(578, 28, 4, 12);
-
-            // 19-24. 野花
-            for (let i = 0; i < 12; i++) {
-                const fx = 20 + i * 50 + (i % 3) * 10;
-                const fy = H - 20 - (i % 4) * 10;
-                ctx.fillStyle = ['#f5c8c8', '#f5d8b8', '#d4c8e8', '#f5e8a8', '#b8e8c8', '#c8b8e8'][i % 6];
-                ctx.fillRect(fx, fy, 4, 4);
-                ctx.fillRect(fx + 2, fy - 4, 4, 4);
-                ctx.fillStyle = '#4a6a3a';
-                ctx.fillRect(fx + 2, fy + 4, 2, 6);
-            }
-
-            // 25. 木頭
-            ctx.fillStyle = '#6a4a2a';
-            ctx.fillRect(460, H - 20, 60, 8);
-            ctx.fillRect(455, H - 14, 70, 6);
-
-            // 26. 蝴蝶
-            const bx = 200 + Math.sin(frame * 0.05) * 40;
-            const by = 160 + Math.sin(frame * 0.07) * 20;
-            ctx.fillStyle = '#d4b84a';
-            ctx.fillRect(bx - 6, by, 4, 6);
-            ctx.fillRect(bx + 2, by, 4, 6);
-            ctx.fillStyle = '#c45a5a';
-            ctx.fillRect(bx - 4, by + 2, 8, 2);
-
-            // 27-28. 小鳥
-            for (let i = 0; i < 2; i++) {
-                const bx2 = 400 + i * 80 + Math.sin(frame * 0.04 + i) * 20;
-                const by2 = 80 + i * 30 + Math.sin(frame * 0.06 + i) * 10;
-                ctx.fillStyle = COLORS.dark;
-                ctx.fillRect(bx2, by2, 8, 4);
-                ctx.fillRect(bx2 - 4, by2 + 2, 4, 2);
-                ctx.fillRect(bx2 + 8, by2 + 2, 4, 2);
-            }
-
-            // 29-30. 樹洞
-            ctx.fillStyle = '#4a3a2a';
-            ctx.fillRect(140, H - 100, 12, 16);
-            ctx.fillStyle = '#3a2a1a';
-            ctx.fillRect(144, H - 96, 4, 8);
-
-            // 31. 松鼠 (簡單)
-            ctx.fillStyle = '#8a6a4a';
-            ctx.fillRect(500, H - 50, 8, 6);
-            ctx.fillStyle = '#6a4a2a';
-            ctx.fillRect(504, H - 56, 4, 8);
-            ctx.fillRect(496, H - 52, 4, 4);
-        }
-
-        function drawLibrary(frame) {
-            drawSkyAndGround();
-            // 1. 書架 x 5
-            for (let i = 0; i < 5; i++) {
-                const x = 20 + i * 116;
-                ctx.fillStyle = '#6a5a4a';
-                ctx.fillRect(x, 30, 100, 200);
-                ctx.fillStyle = '#8a7a6a';
-                for (let j = 0; j < 4; j++) {
-                    ctx.fillRect(x + 4, 36 + j * 48, 92, 40);
-                    for (let k = 0; k < 6; k++) {
-                        const colors = ['#c45a5a', '#4a7a9a', '#6b9e6b', '#d4b84a', '#8a6a9a', '#f5c8c8'];
-                        ctx.fillStyle = colors[(i + j + k) % 6];
-                        ctx.fillRect(x + 6 + k * 14, 38 + j * 48, 10, 32);
-                        if (k % 2 === 0) {
-                            ctx.fillStyle = '#f5f0e8';
-                            ctx.fillRect(x + 8 + k * 14, 44 + j * 48, 4, 4);
+        function drawSceneElements(stage, frame) {
+            // 簡化場景元素 - 每個場景畫一些代表性物件
+            const elements = {
+                'classroom': () => {
+                    ctx.fillStyle = COLORS.cream;
+                    ctx.fillRect(0, 0, W, H - 60);
+                    ctx.fillStyle = '#1a2a2a';
+                    ctx.fillRect(40, 20, 320, 110);
+                    ctx.fillStyle = '#2a4a4a';
+                    ctx.fillRect(44, 24, 312, 102);
+                    ctx.fillStyle = '#d4d4c0';
+                    ctx.font = '18px "Courier New", monospace';
+                    ctx.fillText('📖 燕京書院', 80, 58);
+                    ctx.fillStyle = '#d4c5b2';
+                    for (let i = 0; i < 3; i++) {
+                        ctx.fillRect(80 + i * 110, H - 120, 70, 8);
+                    }
+                },
+                'camp': () => {
+                    ctx.fillStyle = '#3a5a3a';
+                    for (let i = 0; i < 6; i++) {
+                        const x = 20 + i * 90;
+                        const y = H - 80 - Math.sin(i * 1.1) * 40;
+                        ctx.fillRect(x + 4, y + 10, 6, 30);
+                        ctx.fillRect(x - 16, y - 12, 36, 26);
+                    }
+                    ctx.fillStyle = '#6a8a4a';
+                    ctx.fillRect(380, H - 110, 100, 50);
+                    ctx.fillStyle = '#6a4a2a';
+                    ctx.fillRect(280, H - 50, 40, 12);
+                    ctx.fillStyle = '#e8a040';
+                    ctx.fillRect(292, H - 70, 16, 20);
+                },
+                'forest': () => {
+                    for (let i = 0; i < 8; i++) {
+                        const x = 10 + i * 70;
+                        const y = H - 70 - Math.sin(i * 0.7) * 50;
+                        ctx.fillStyle = '#3a5a3a';
+                        ctx.fillRect(x + 3, y + 10, 6, 30);
+                        ctx.fillStyle = '#2a6a2a';
+                        ctx.fillRect(x - 18, y - 12, 40, 28);
+                    }
+                    ctx.fillStyle = '#d4b84a';
+                    ctx.beginPath();
+                    ctx.arc(580, 40, 30, 0, Math.PI * 2);
+                    ctx.fill();
+                },
+                'library': () => {
+                    for (let i = 0; i < 4; i++) {
+                        const x = 20 + i * 140;
+                        ctx.fillStyle = '#6a5a4a';
+                        ctx.fillRect(x, 30, 100, 200);
+                        ctx.fillStyle = '#8a7a6a';
+                        for (let j = 0; j < 3; j++) {
+                            ctx.fillRect(x + 4, 36 + j * 48, 92, 40);
+                            for (let k = 0; k < 5; k++) {
+                                ctx.fillStyle = ['#c45a5a', '#4a7a9a', '#6b9e6b', '#d4b84a', '#f5c8c8'][(j + k) % 5];
+                                ctx.fillRect(x + 6 + k * 14, 38 + j * 48, 10, 32);
+                            }
                         }
                     }
-                }
-            }
-
-            // 2. 大檯燈
-            ctx.fillStyle = '#5a4a3a';
-            ctx.fillRect(540, 200, 10, 60);
-            ctx.fillStyle = '#d4b84a';
-            ctx.beginPath();
-            ctx.arc(545, 196, 30, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#f5f0e8';
-            ctx.beginPath();
-            ctx.arc(545, 196, 22, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#e8d040';
-            ctx.beginPath();
-            ctx.arc(545, 196, 12, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 3. 閱讀桌
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(380, 280, 160, 12);
-            ctx.fillRect(400, 292, 8, 30);
-            ctx.fillRect(512, 292, 8, 30);
-
-            // 4-6. 桌上書本
-            ctx.fillStyle = '#4a7a9a';
-            ctx.fillRect(400, 270, 20, 14);
-            ctx.fillStyle = '#c45a5a';
-            ctx.fillRect(424, 268, 16, 16);
-            ctx.fillStyle = '#6b9e6b';
-            ctx.fillRect(444, 272, 14, 12);
-
-            // 7. 窗戶
-            ctx.fillStyle = '#8cb3d1';
-            ctx.fillRect(560, 40, 60, 50);
-            ctx.fillStyle = '#b8d4e8';
-            ctx.fillRect(564, 44, 52, 42);
-            ctx.fillStyle = COLORS.dark;
-            ctx.fillRect(590, 40, 4, 50);
-            ctx.fillRect(560, 64, 60, 4);
-
-            // 8. 盆栽
-            ctx.fillStyle = '#6a4a2a';
-            ctx.fillRect(580, 280, 30, 16);
-            ctx.fillStyle = '#4a8a3a';
-            ctx.beginPath();
-            ctx.arc(595, 274, 22, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 9. 掛畫
-            ctx.fillStyle = '#4a6a8a';
-            ctx.fillRect(560, 120, 40, 50);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.font = '18px "Courier New", monospace';
-            ctx.fillText('📚', 570, 150);
-
-            // 10. 時鐘
-            ctx.fillStyle = COLORS.dark;
-            ctx.beginPath();
-            ctx.arc(100, 50, 20, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.white;
-            ctx.beginPath();
-            ctx.arc(100, 50, 16, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.dark;
-            ctx.fillRect(97, 38, 3, 12);
-
-            // 11-15. 書架上的裝飾
-            for (let i = 0; i < 5; i++) {
-                const x = 30 + i * 116;
-                ctx.fillStyle = ['#d4b84a', '#c45a5a', '#4a7a9a', '#6b9e6b', '#f5c8c8'][i];
-                ctx.fillRect(x + 40, 38, 6, 6);
-                ctx.fillRect(x + 60, 38, 6, 6);
-            }
-
-            // 16-18. 椅子
-            for (let i = 0; i < 3; i++) {
-                const x = 390 + i * 70;
-                ctx.fillStyle = '#6a5a4a';
-                ctx.fillRect(x, H - 40, 30, 10);
-                ctx.fillRect(x + 4, H - 30, 4, 20);
-                ctx.fillRect(x + 22, H - 30, 4, 20);
-                ctx.fillStyle = '#5a4a3a';
-                ctx.fillRect(x + 2, H - 46, 26, 8);
-            }
-
-            // 19-22. 小盆栽 (書架上)
-            for (let i = 0; i < 4; i++) {
-                const x = 40 + i * 116;
-                ctx.fillStyle = '#6a4a2a';
-                ctx.fillRect(x + 70, 130, 12, 8);
-                ctx.fillStyle = '#4a8a3a';
-                ctx.beginPath();
-                ctx.arc(x + 76, 128, 8, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            // 23-24. 窗簾
-            ctx.fillStyle = '#d4c8e8';
-            ctx.fillRect(558, 38, 8, 54);
-            ctx.fillRect(614, 38, 8, 54);
-
-            // 25. 地毯
-            ctx.fillStyle = '#d4c8b8';
-            ctx.fillRect(360, H - 20, 200, 16);
-            ctx.fillStyle = '#c8b8a8';
-            ctx.fillRect(370, H - 16, 180, 10);
-
-            // 26-30. 彩旗
-            for (let i = 0; i < 8; i++) {
-                const x = 20 + i * 30;
-                const colors = ['#f5c8c8', '#d4e8f5', '#b8e8c8', '#f5e8a8', '#d4c8e8', '#f5d8b8', '#e8c8d4', '#c8e8d4'];
-                ctx.fillStyle = colors[i % 8];
-                ctx.fillRect(x, 10, 16, 10);
-                ctx.fillRect(x + 5, 20, 6, 8);
-            }
-        }
-
-        function drawCommunity(frame) {
-            drawSkyAndGround();
-            drawClouds(frame);
-
-            // 1. 建築物
-            ctx.fillStyle = '#d4c5b2';
-            ctx.fillRect(40, 40, 480, 260);
-            ctx.fillStyle = '#c8b8a8';
-            ctx.fillRect(44, 44, 472, 252);
-
-            // 2-7. 窗戶 x 6
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 2; j++) {
-                    ctx.fillStyle = '#8cb3d1';
-                    ctx.fillRect(70 + i * 150, 60 + j * 100, 80, 60);
-                    ctx.fillStyle = '#b8d4e8';
-                    ctx.fillRect(74 + i * 150, 64 + j * 100, 72, 52);
+                },
+                'community': () => {
+                    ctx.fillStyle = '#d4c5b2';
+                    ctx.fillRect(40, 40, 480, 260);
+                    ctx.fillStyle = '#c8b8a8';
+                    ctx.fillRect(44, 44, 472, 252);
+                    for (let i = 0; i < 3; i++) {
+                        for (let j = 0; j < 2; j++) {
+                            ctx.fillStyle = '#8cb3d1';
+                            ctx.fillRect(70 + i * 150, 60 + j * 100, 80, 60);
+                        }
+                    }
+                    ctx.fillStyle = '#6a4a3a';
+                    ctx.fillRect(260, 260, 60, 40);
+                    ctx.fillStyle = '#c45a5a';
+                    ctx.font = '28px "Courier New", monospace';
+                    ctx.fillText('❤️', 540, 80);
+                },
+                'playground': () => {
+                    ctx.fillStyle = '#8a7a6a';
+                    for (let i = 0; i < 20; i++) {
+                        ctx.fillRect(10 + i * 22, H - 55, 4, 20);
+                    }
+                    ctx.fillStyle = '#6a5a4a';
+                    ctx.fillRect(180, H - 130, 6, 70);
+                    ctx.fillRect(260, H - 130, 6, 70);
+                    ctx.fillRect(180, H - 134, 86, 8);
+                    ctx.fillStyle = '#c45a5a';
+                    ctx.fillRect(300, H - 130, 6, 70);
+                    ctx.fillStyle = '#4a7a9a';
+                    ctx.fillRect(306, H - 40, 60, 6);
+                },
+                'classroom_group': () => {
+                    ctx.fillStyle = '#f5f0e8';
+                    ctx.fillRect(30, 20, 280, 100);
+                    ctx.fillStyle = '#e8e0d8';
+                    ctx.fillRect(34, 24, 272, 92);
                     ctx.fillStyle = COLORS.dark;
-                    ctx.fillRect(110 + i * 150, 60 + j * 100, 4, 60);
-                    ctx.fillRect(70 + i * 150, 90 + j * 100, 80, 4);
-                }
-            }
-
-            // 8. 大門
-            ctx.fillStyle = '#6a4a3a';
-            ctx.fillRect(260, 260, 60, 40);
-            ctx.fillStyle = '#8a6a5a';
-            ctx.fillRect(264, 264, 52, 32);
-            ctx.fillStyle = '#d4b84a';
-            ctx.fillRect(280, 280, 8, 8);
-
-            // 9-11. 物資箱 x 3
-            const boxes = [
-                [300, H - 50, 40, 30],
-                [360, H - 45, 35, 25],
-                [420, H - 50, 40, 30]
-            ];
-            boxes.forEach((b, i) => {
-                ctx.fillStyle = ['#6a5a4a', '#5a4a3a', '#7a6a5a'][i];
-                ctx.fillRect(b[0], b[1], b[2], b[3]);
-                ctx.fillStyle = '#8a7a6a';
-                ctx.fillRect(b[0] + 4, b[1] - 6, b[2] - 8, 8);
-                ctx.fillStyle = '#4a3a2a';
-                ctx.fillRect(b[0] + 6, b[1] + 6, 8, 8);
-                ctx.fillRect(b[0] + 20, b[1] + 6, 8, 8);
-            });
-
-            // 12. 義工標誌
-            ctx.fillStyle = '#c45a5a';
-            ctx.font = '28px "Courier New", monospace';
-            ctx.fillText('❤️', 540, 80);
-            ctx.fillStyle = COLORS.dark;
-            ctx.font = '12px "Courier New", monospace';
-            ctx.fillText('義工服務', 520, 110);
-
-            // 13. 旗幟
-            ctx.fillStyle = COLORS.dark;
-            ctx.fillRect(20, 40, 4, 100);
-            ctx.fillStyle = '#4a7a9a';
-            ctx.fillRect(24, 40, 30, 20);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.font = '12px "Courier New", monospace';
-            ctx.fillText('🏥', 28, 56);
-
-            // 14. 長椅
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(520, H - 30, 80, 8);
-            ctx.fillRect(526, H - 22, 6, 16);
-            ctx.fillRect(590, H - 22, 6, 16);
-            ctx.fillStyle = '#5a4a3a';
-            ctx.fillRect(528, H - 38, 64, 10);
-
-            // 15. 樹
-            ctx.fillStyle = '#3a5a3a';
-            ctx.fillRect(580, H - 70, 8, 30);
-            ctx.fillStyle = '#2a6a2a';
-            ctx.beginPath();
-            ctx.arc(584, H - 84, 30, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 16-18. 氣球 x 3
-            for (let i = 0; i < 3; i++) {
-                const bx = 40 + i * 30;
-                const by = 20 + i * 15;
-                ctx.fillStyle = ['#c45a5a', '#4a8a4a', '#4a7a9a'][i];
-                ctx.beginPath();
-                ctx.ellipse(bx, by, 10, 14, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = COLORS.dark;
-                ctx.fillRect(bx - 1, by + 14, 2, 20);
-            }
-
-            // 19-22. 花朵
-            for (let i = 0; i < 6; i++) {
-                const fx = 40 + i * 30 + (i % 2) * 10;
-                const fy = H - 15 - (i % 3) * 6;
-                ctx.fillStyle = ['#f5c8c8', '#f5d8b8', '#d4c8e8', '#f5e8a8'][i % 4];
-                ctx.fillRect(fx, fy, 4, 4);
-                ctx.fillRect(fx + 2, fy - 4, 4, 4);
-                ctx.fillStyle = '#4a6a3a';
-                ctx.fillRect(fx + 2, fy + 4, 2, 6);
-            }
-
-            // 23-24. 窗簾
-            ctx.fillStyle = '#d4c8e8';
-            ctx.fillRect(66, 56, 8, 48);
-            ctx.fillRect(146, 56, 8, 48);
-
-            // 25. 招牌
-            ctx.fillStyle = '#4a6a8a';
-            ctx.fillRect(160, 10, 200, 24);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.font = '14px "Courier New", monospace';
-            ctx.fillText('✦ 社區中心 ✦', 190, 28);
-
-            // 26-28. 小旗子
-            for (let i = 0; i < 3; i++) {
-                ctx.fillStyle = COLORS.dark;
-                ctx.fillRect(60 + i * 160, 44, 2, 20);
-                ctx.fillStyle = ['#f5c8c8', '#f5e8a8', '#b8e8c8'][i];
-                ctx.fillRect(62 + i * 160, 44, 16, 10);
-            }
-
-            // 29-30. 郵箱
-            ctx.fillStyle = '#4a6a4a';
-            ctx.fillRect(540, H - 50, 20, 16);
-            ctx.fillStyle = '#5a7a5a';
-            ctx.fillRect(544, H - 54, 12, 8);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.fillRect(548, H - 50, 4, 4);
-        }
-
-        function drawPlayground(frame) {
-            drawSkyAndGround();
-            drawClouds(frame);
-
-            // 1. 圍欄
-            ctx.fillStyle = '#8a7a6a';
-            for (let i = 0; i < 30; i++) {
-                ctx.fillRect(10 + i * 22, H - 55, 4, 20);
-                if (i % 2 === 0) ctx.fillRect(10 + i * 22, H - 55, 22, 4);
-            }
-
-            // 2. 大樹
-            ctx.fillStyle = '#3a5a3a';
-            ctx.fillRect(540, H - 120, 12, 50);
-            ctx.fillStyle = '#2a6a2a';
-            ctx.beginPath();
-            ctx.arc(546, H - 140, 60, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#3a7a3a';
-            ctx.beginPath();
-            ctx.arc(530, H - 160, 40, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(562, H - 160, 40, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 3-4. 長椅 x 2
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(40, H - 70, 80, 8);
-            ctx.fillRect(46, H - 62, 6, 16);
-            ctx.fillRect(110, H - 62, 6, 16);
-            ctx.fillStyle = '#5a4a3a';
-            ctx.fillRect(50, H - 82, 60, 14);
-
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(380, H - 70, 80, 8);
-            ctx.fillRect(386, H - 62, 6, 16);
-            ctx.fillRect(450, H - 62, 6, 16);
-            ctx.fillStyle = '#5a4a3a';
-            ctx.fillRect(390, H - 82, 60, 14);
-
-            // 5. 鞦韆
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(180, H - 130, 6, 70);
-            ctx.fillRect(260, H - 130, 6, 70);
-            ctx.fillRect(180, H - 134, 86, 8);
-            const swingY = H - 60 + Math.sin(frame * 0.05) * 20;
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(190, H - 50, 4, 30);
-            ctx.fillRect(252, H - 50, 4, 30);
-            ctx.fillStyle = '#8a7a6a';
-            ctx.fillRect(186, swingY, 14, 8);
-            ctx.fillRect(246, swingY, 14, 8);
-
-            // 6. 滑梯
-            ctx.fillStyle = '#c45a5a';
-            ctx.fillRect(300, H - 130, 6, 70);
-            ctx.fillStyle = '#4a7a9a';
-            ctx.fillRect(306, H - 40, 60, 6);
-            ctx.fillRect(360, H - 130, 6, 90);
-            ctx.fillStyle = '#d4b84a';
-            for (let i = 0; i < 6; i++) {
-                ctx.fillRect(312 + i * 8, H - 34 - i * 8, 6, 4);
-            }
-
-            // 7. 沙池
-            ctx.fillStyle = '#d4c8a8';
-            ctx.fillRect(440, H - 40, 80, 20);
-            ctx.fillStyle = '#c8b898';
-            ctx.fillRect(444, H - 36, 72, 12);
-
-            // 8. 小鏟子
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(470, H - 44, 4, 14);
-            ctx.fillStyle = '#8a7a6a';
-            ctx.fillRect(466, H - 46, 12, 6);
-
-            // 9-16. 花朵 x 8
-            for (let i = 0; i < 8; i++) {
-                const fx = 20 + i * 20 + (i % 2) * 6;
-                const fy = H - 15 - (i % 3) * 6;
-                ctx.fillStyle = ['#f5c8c8', '#f5d8b8', '#d4c8e8', '#f5e8a8', '#b8e8c8', '#e8c8d4'][i % 6];
-                ctx.fillRect(fx, fy, 4, 4);
-                ctx.fillRect(fx + 2, fy - 4, 4, 4);
-                ctx.fillStyle = '#4a6a3a';
-                ctx.fillRect(fx + 2, fy + 4, 2, 6);
-            }
-
-            // 17-18. 垃圾筒 x 2
-            ctx.fillStyle = '#4a6a4a';
-            ctx.fillRect(520, H - 40, 12, 16);
-            ctx.fillStyle = '#5a7a5a';
-            ctx.fillRect(522, H - 44, 8, 6);
-            ctx.fillStyle = '#4a6a4a';
-            ctx.fillRect(320, H - 40, 12, 16);
-            ctx.fillStyle = '#5a7a5a';
-            ctx.fillRect(322, H - 44, 8, 6);
-
-            // 19-22. 小石頭
-            for (let i = 0; i < 4; i++) {
-                const sx = 140 + i * 70 + (i % 2) * 10;
-                ctx.fillStyle = ['#8a8a7a', '#9a9a8a', '#7a7a6a', '#8a8a7a'][i];
-                ctx.fillRect(sx, H - 10, 8, 6);
-                ctx.fillRect(sx + 2, H - 14, 4, 6);
-            }
-
-            // 23. 籃球架
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(600, H - 120, 4, 60);
-            ctx.fillStyle = '#8a7a6a';
-            ctx.fillRect(600, H - 124, 30, 8);
-            ctx.fillStyle = '#c45a5a';
-            ctx.fillRect(626, H - 120, 4, 4);
-            ctx.fillRect(620, H - 116, 12, 4);
-
-            // 24-26. 小鳥
-            for (let i = 0; i < 3; i++) {
-                const bx2 = 100 + i * 60 + Math.sin(frame * 0.04 + i) * 20;
-                const by2 = 60 + i * 20 + Math.sin(frame * 0.06 + i) * 10;
-                ctx.fillStyle = COLORS.dark;
-                ctx.fillRect(bx2, by2, 6, 3);
-                ctx.fillRect(bx2 - 3, by2 + 2, 3, 2);
-                ctx.fillRect(bx2 + 6, by2 + 2, 3, 2);
-            }
-
-            // 27-30. 落葉
-            for (let i = 0; i < 6; i++) {
-                const lx = (i * 50 + frame * 0.2) % 640;
-                const ly = H - 20 - (i % 5) * 8 + Math.sin(frame * 0.03 + i) * 4;
-                ctx.fillStyle = ['#d4b84a', '#e8b86a', '#c45a5a', '#8a7a5a'][i % 4];
-                ctx.fillRect(lx, ly, 4, 3);
-                ctx.fillRect(lx + 1, ly - 2, 2, 3);
-            }
-        }
-
-        function drawClassroomGroup(frame) {
-            drawSkyAndGround();
-            drawClouds(frame);
-
-            // 1. 白板
-            ctx.fillStyle = '#f5f0e8';
-            ctx.fillRect(30, 20, 280, 100);
-            ctx.fillStyle = '#e8e0d8';
-            ctx.fillRect(34, 24, 272, 92);
-            ctx.fillStyle = COLORS.dark;
-            ctx.font = '14px "Courier New", monospace';
-            ctx.fillText('📊 小組報告進度', 60, 52);
-            ctx.fillStyle = '#c45a5a';
-            ctx.fillRect(60, 64, 160, 10);
-            ctx.fillStyle = '#4a8a4a';
-            ctx.fillRect(60, 64, 70, 10);
-            ctx.fillStyle = COLORS.dark;
-            ctx.font = '10px "Courier New", monospace';
-            ctx.fillText('落後中！', 240, 72);
-
-            // 2. 圓桌
-            ctx.fillStyle = '#6a5a4a';
-            ctx.beginPath();
-            ctx.arc(440, 250, 80, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#8a7a6a';
-            ctx.beginPath();
-            ctx.arc(440, 250, 66, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 3-6. 筆記 x 4
-            const notePos = [
-                [400, 210],
-                [480, 210],
-                [400, 290],
-                [480, 290]
-            ];
-            notePos.forEach((pos, i) => {
-                ctx.fillStyle = '#f5efe6';
-                ctx.fillRect(pos[0], pos[1], 30, 22);
-                ctx.fillStyle = COLORS.dark;
-                ctx.fillRect(pos[0] + 4, pos[1] + 4, 22, 3);
-                ctx.fillRect(pos[0] + 4, pos[1] + 10, 22, 3);
-                ctx.fillRect(pos[0] + 4, pos[1] + 16, 14, 3);
-            });
-
-            // 7. 時鐘
-            ctx.fillStyle = COLORS.dark;
-            ctx.beginPath();
-            ctx.arc(540, 40, 24, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.white;
-            ctx.beginPath();
-            ctx.arc(540, 40, 18, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.dark;
-            const a2 = (frame * 0.02) % 360;
-            ctx.fillRect(537, 26, 3, 14);
-
-            // 8. 窗戶
-            ctx.fillStyle = '#8cb3d1';
-            ctx.fillRect(20, 140, 80, 60);
-            ctx.fillStyle = '#b8d4e8';
-            ctx.fillRect(24, 144, 72, 52);
-            ctx.fillStyle = COLORS.dark;
-            ctx.fillRect(60, 140, 4, 60);
-            ctx.fillRect(20, 170, 80, 4);
-
-            // 9. 盆栽
-            ctx.fillStyle = '#6a4a2a';
-            ctx.fillRect(560, 260, 24, 16);
-            ctx.fillStyle = '#4a8a3a';
-            ctx.beginPath();
-            ctx.arc(572, 254, 20, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 10. 書架
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(560, 40, 40, 120);
-            ctx.fillStyle = '#8a7a6a';
-            ctx.fillRect(564, 44, 32, 112);
-            const colors2 = ['#c45a5a', '#4a7a9a', '#6b9e6b', '#d4b84a'];
-            for (let i = 0; i < 4; i++) {
-                ctx.fillStyle = colors2[i];
-                ctx.fillRect(566, 46 + i * 26, 28, 20);
-                ctx.fillStyle = '#f5f0e8';
-                ctx.fillRect(570, 50 + i * 26, 4, 4);
-                ctx.fillRect(582, 50 + i * 26, 4, 4);
-            }
-
-            // 11-14. 椅子 x 4
-            for (let i = 0; i < 4; i++) {
-                const cx = 370 + i * 50;
-                const cy = 310;
-                ctx.fillStyle = '#6a5a4a';
-                ctx.fillRect(cx, cy, 20, 8);
-                ctx.fillRect(cx + 2, cy + 8, 4, 12);
-                ctx.fillRect(cx + 14, cy + 8, 4, 12);
-                ctx.fillStyle = '#5a4a3a';
-                ctx.fillRect(cx + 1, cy - 4, 18, 6);
-            }
-
-            // 15-18. 馬克杯 x 4 (桌上)
-            for (let i = 0; i < 4; i++) {
-                const mx = 390 + i * 34;
-                const my = 206 + (i % 2) * 80;
-                ctx.fillStyle = ['#c45a5a', '#4a7a9a', '#6b9e6b', '#d4b84a'][i];
-                ctx.fillRect(mx, my, 8, 10);
-                ctx.fillRect(mx + 1, my - 2, 6, 4);
-                ctx.fillStyle = '#f5f0e8';
-                ctx.fillRect(mx + 2, my + 2, 4, 2);
-            }
-
-            // 19-22. 彩旗
-            for (let i = 0; i < 6; i++) {
-                const x = 20 + i * 28;
-                const colors = ['#f5c8c8', '#d4e8f5', '#b8e8c8', '#f5e8a8', '#d4c8e8', '#f5d8b8'];
-                ctx.fillStyle = colors[i % 6];
-                ctx.fillRect(x, 10, 14, 10);
-                ctx.fillRect(x + 4, 20, 6, 8);
-            }
-
-            // 23. 白板筆
-            ctx.fillStyle = '#c45a5a';
-            ctx.fillRect(300, 36, 12, 6);
-            ctx.fillStyle = '#4a7a9a';
-            ctx.fillRect(300, 44, 12, 6);
-
-            // 24-25. 窗簾
-            ctx.fillStyle = '#d4c8e8';
-            ctx.fillRect(18, 138, 8, 64);
-            ctx.fillRect(94, 138, 8, 64);
-
-            // 26-30. 牆上海報
-            const posters = [
-                [480, 120, 40, 50, '🌟 加油'],
-                [530, 120, 30, 40, '📚'],
-                [480, 180, 30, 40, '💪'],
-            ];
-            posters.forEach((p, i) => {
-                ctx.fillStyle = ['#f5c8c8', '#d4e8f5', '#b8e8c8'][i];
-                ctx.fillRect(p[0], p[1], p[2], p[3]);
-                ctx.fillStyle = COLORS.dark;
-                ctx.font = '10px "Courier New", monospace';
-                ctx.fillText(p[4], p[0] + 8, p[1] + 24);
-            });
-        }
-
-        function drawClassroomTeacher(frame) {
-            drawSkyAndGround();
-            drawClouds(frame);
-
-            // 1. 大黑板
-            ctx.fillStyle = '#1a2a2a';
-            ctx.fillRect(20, 20, 400, 130);
-            ctx.fillStyle = '#2a4a4a';
-            ctx.fillRect(24, 24, 392, 122);
-            ctx.fillStyle = '#d4d4c0';
-            ctx.font = '18px "Courier New", monospace';
-            ctx.fillText('📝 課堂進行中', 60, 60);
-            ctx.font = '14px "Courier New", monospace';
-            ctx.fillText('今日課題：尊重與溝通', 80, 92);
-            ctx.fillStyle = '#c45a5a';
-            ctx.fillRect(80, 110, 140, 6);
-
-            // 2. 講台
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(30, 160, 80, 50);
-            ctx.fillStyle = '#5a4a3a';
-            ctx.fillRect(34, 164, 72, 42);
-
-            // 3-7. 粉筆
-            const chalkColors = ['#f5f0e8', '#d4b84a', '#c45a5a', '#4a8a4a', '#4a7a9a'];
-            for (let i = 0; i < 5; i++) {
-                ctx.fillStyle = chalkColors[i];
-                ctx.fillRect(440 + i * 20, 170, 14, 6);
-            }
-
-            // 8-10. 學生桌 x 3
-            for (let i = 0; i < 3; i++) {
-                const x = 200 + i * 120;
-                ctx.fillStyle = '#b8a090';
-                ctx.fillRect(x, H - 80, 80, 8);
-                ctx.fillRect(x + 6, H - 72, 6, 30);
-                ctx.fillRect(x + 68, H - 72, 6, 30);
-                ctx.fillStyle = '#d4c5b2';
-                ctx.fillRect(x + 4, H - 84, 72, 8);
-            }
-
-            // 11. 窗戶
-            ctx.fillStyle = '#8cb3d1';
-            ctx.fillRect(460, 20, 80, 60);
-            ctx.fillStyle = '#b8d4e8';
-            ctx.fillRect(464, 24, 72, 52);
-            ctx.fillStyle = COLORS.dark;
-            ctx.fillRect(500, 20, 4, 60);
-            ctx.fillRect(460, 50, 80, 4);
-
-            // 12-13. 窗簾
-            ctx.fillStyle = '#4a6a7a';
-            ctx.fillRect(458, 18, 8, 64);
-            ctx.fillRect(536, 18, 8, 64);
-
-            // 14. 時鐘
-            ctx.fillStyle = COLORS.dark;
-            ctx.beginPath();
-            ctx.arc(460, 120, 20, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.white;
-            ctx.beginPath();
-            ctx.arc(460, 120, 16, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.dark;
-            const a3 = (frame * 0.02) % 360;
-            ctx.fillRect(457, 108, 3, 12);
-
-            // 15. 黑板擦
-            ctx.fillStyle = '#4a4a4a';
-            ctx.fillRect(530, 160, 30, 12);
-            ctx.fillStyle = '#6a6a6a';
-            ctx.fillRect(532, 162, 26, 8);
-
-            // 16-17. 標語
-            ctx.fillStyle = '#4a7a4a';
-            ctx.font = '12px "Courier New", monospace';
-            ctx.fillText('✧ 尊重他人 ✧', 520, 210);
-            ctx.fillText('✧ 誠實面對 ✧', 520, 230);
-
-            // 18-20. 學生椅子
-            for (let i = 0; i < 3; i++) {
-                const cx = 210 + i * 120;
-                ctx.fillStyle = '#6a5a4a';
-                ctx.fillRect(cx + 10, H - 40, 20, 8);
-                ctx.fillRect(cx + 12, H - 32, 4, 12);
-                ctx.fillRect(cx + 24, H - 32, 4, 12);
-                ctx.fillStyle = '#5a4a3a';
-                ctx.fillRect(cx + 11, H - 44, 18, 6);
-            }
-
-            // 21-24. 書本 (桌上)
-            for (let i = 0; i < 3; i++) {
-                const x = 210 + i * 120;
-                ctx.fillStyle = ['#c45a5a', '#4a7a9a', '#6b9e6b'][i];
-                ctx.fillRect(x + 20, H - 76, 12, 8);
-                ctx.fillStyle = ['#6b9e6b', '#c45a5a', '#4a7a9a'][i];
-                ctx.fillRect(x + 36, H - 78, 12, 10);
-            }
-
-            // 25-28. 彩旗
-            for (let i = 0; i < 6; i++) {
-                const x = 20 + i * 28;
-                const colors = ['#f5c8c8', '#d4e8f5', '#b8e8c8', '#f5e8a8', '#d4c8e8', '#f5d8b8'];
-                ctx.fillStyle = colors[i % 6];
-                ctx.fillRect(x, 10, 14, 10);
-                ctx.fillRect(x + 4, 20, 6, 8);
-            }
-
-            // 29-30. 盆栽 (窗邊)
-            ctx.fillStyle = '#6a4a2a';
-            ctx.fillRect(550, H - 50, 16, 12);
-            ctx.fillStyle = '#4a8a3a';
-            ctx.beginPath();
-            ctx.arc(558, H - 54, 14, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        function drawHome(frame) {
-            drawSkyAndGround();
-            drawClouds(frame);
-
-            // 1. 牆壁
-            ctx.fillStyle = '#e8ddd0';
-            ctx.fillRect(0, 0, W, H - 50);
-
-            // 2. 梳化
-            ctx.fillStyle = '#6a4a3a';
-            ctx.fillRect(40, H - 110, 160, 50);
-            ctx.fillStyle = '#7a5a4a';
-            ctx.fillRect(44, H - 116, 152, 12);
-            ctx.fillStyle = '#5a3a2a';
-            ctx.fillRect(44, H - 66, 152, 6);
-
-            // 3-4. 抱枕
-            ctx.fillStyle = '#c45a5a';
-            ctx.fillRect(60, H - 104, 24, 18);
-            ctx.fillStyle = '#4a7a9a';
-            ctx.fillRect(160, H - 104, 24, 18);
-
-            // 5. 電視
-            ctx.fillStyle = COLORS.dark;
-            ctx.fillRect(240, H - 130, 120, 80);
-            ctx.fillStyle = '#4a6a8a';
-            ctx.fillRect(244, H - 126, 112, 72);
-            ctx.fillStyle = '#6a9ac8';
-            ctx.fillRect(250, H - 120, 100, 60);
-            ctx.fillStyle = '#8abae8';
-            ctx.fillRect(260, H - 110, 80, 40);
-            ctx.fillStyle = '#4a8a4a';
-            ctx.fillRect(280, H - 80, 20, 20);
-            ctx.fillStyle = '#c45a5a';
-            ctx.fillRect(310, H - 70, 10, 10);
-
-            // 6. 水果盤
-            ctx.fillStyle = '#d4b84a';
-            ctx.beginPath();
-            ctx.arc(430, H - 30, 28, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#c45a5a';
-            ctx.beginPath();
-            ctx.arc(424, H - 38, 14, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#6b9e6b';
-            ctx.beginPath();
-            ctx.arc(442, H - 40, 12, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#f5d0a0';
-            ctx.beginPath();
-            ctx.arc(434, H - 48, 10, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 7. 枱燈
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(520, H - 70, 8, 30);
-            ctx.fillStyle = '#d4b84a';
-            ctx.beginPath();
-            ctx.arc(524, H - 74, 18, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#f5f0e8';
-            ctx.beginPath();
-            ctx.arc(524, H - 74, 12, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 8. 窗戶 (夜景)
-            ctx.fillStyle = '#1a2a3a';
-            ctx.fillRect(560, 40, 60, 50);
-            ctx.fillStyle = '#3a5a7a';
-            ctx.fillRect(564, 44, 52, 42);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.font = '16px "Courier New", monospace';
-            ctx.fillText('🌙', 576, 72);
-
-            // 9. 時鐘
-            ctx.fillStyle = COLORS.dark;
-            ctx.beginPath();
-            ctx.arc(560, 120, 20, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.white;
-            ctx.beginPath();
-            ctx.arc(560, 120, 16, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.dark;
-            const a4 = (frame * 0.02) % 360;
-            ctx.fillRect(557, 108, 3, 12);
-
-            // 10. 地毯
-            ctx.fillStyle = '#8a6a5a';
-            ctx.fillRect(60, H - 20, 200, 16);
-            ctx.fillStyle = '#7a5a4a';
-            ctx.fillRect(70, H - 16, 180, 10);
-
-            // 11. 相框
-            ctx.fillStyle = '#d4b84a';
-            ctx.fillRect(560, 160, 40, 50);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.fillRect(564, 164, 32, 42);
-            ctx.fillStyle = COLORS.dark;
-            ctx.font = '20px "Courier New", monospace';
-            ctx.fillText('👨‍👩‍👦', 566, 192);
-
-            // 12-15. 書架 (小)
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(480, H - 100, 40, 60);
-            ctx.fillStyle = '#8a7a6a';
-            ctx.fillRect(484, H - 96, 32, 52);
-            for (let i = 0; i < 3; i++) {
-                ctx.fillStyle = ['#c45a5a', '#4a7a9a', '#6b9e6b'][i];
-                ctx.fillRect(486, H - 92 + i * 16, 28, 12);
-            }
-
-            // 16-18. 裝飾花瓶
-            ctx.fillStyle = '#4a7a9a';
-            ctx.fillRect(490, H - 40, 10, 14);
-            ctx.fillStyle = '#f5c8c8';
-            ctx.beginPath();
-            ctx.arc(495, H - 44, 8, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 19-22. 小彩旗
-            for (let i = 0; i < 4; i++) {
-                const x = 20 + i * 30;
-                ctx.fillStyle = ['#f5c8c8', '#d4e8f5', '#b8e8c8', '#f5e8a8'][i];
-                ctx.fillRect(x, 10, 14, 10);
-                ctx.fillRect(x + 4, 20, 6, 8);
-            }
-
-            // 23-24. 窗簾
-            ctx.fillStyle = '#d4c8e8';
-            ctx.fillRect(558, 38, 8, 54);
-            ctx.fillRect(614, 38, 8, 54);
-
-            // 25. 日曆
-            ctx.fillStyle = '#f5ede4';
-            ctx.fillRect(540, 200, 30, 30);
-            ctx.fillStyle = COLORS.dark;
-            ctx.font = '10px "Courier New", monospace';
-            ctx.fillText('日', 546, 214);
-            ctx.fillText('六', 546, 228);
-
-            // 26-28. 小盆栽
-            for (let i = 0; i < 3; i++) {
-                const px = 20 + i * 30;
-                const py = H - 30 + (i % 2) * 4;
-                ctx.fillStyle = '#6a4a2a';
-                ctx.fillRect(px, py, 8, 6);
-                ctx.fillStyle = '#4a8a3a';
-                ctx.beginPath();
-                ctx.arc(px + 4, py - 4, 6, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            // 29-30. 小裝飾 (星星)
-            for (let i = 0; i < 4; i++) {
-                const sx = 540 + i * 20;
-                const sy = 260 + (i % 2) * 10;
-                ctx.fillStyle = '#d4b84a';
-                ctx.fillRect(sx, sy, 4, 4);
-                ctx.fillRect(sx + 1, sy - 3, 2, 10);
-                ctx.fillRect(sx - 3, sy + 1, 10, 2);
-            }
-        }
-
-        function drawGraduation(frame) {
-            drawSkyAndGround();
-            drawClouds(frame);
-
-            // 1. 校門
-            ctx.fillStyle = '#6a5a4a';
-            ctx.fillRect(120, 40, 24, 300);
-            ctx.fillRect(496, 40, 24, 300);
-            ctx.fillRect(120, 40, 400, 24);
-            ctx.fillStyle = '#8a7a6a';
-            ctx.fillRect(144, 64, 352, 16);
-            ctx.fillStyle = '#4a6a3a';
-            ctx.font = '24px "Courier New", monospace';
-            ctx.fillText('🎓 燕京書院', 200, 108);
-
-            // 2-11. 氣球 x 10
-            const ballonColors = ['#c45a5a', '#4a8a4a', '#4a7a9a', '#d4b84a', '#8a6a9a', '#f5c8c8', '#6a9a7a', '#c45a8a',
-                '#f5d8b8', '#b8e8c8'
-            ];
-            for (let i = 0; i < 10; i++) {
-                const x = 40 + i * 56;
-                const y = 20 + Math.sin(i * 0.9) * 20;
-                ctx.fillStyle = ballonColors[i % 10];
-                ctx.beginPath();
-                ctx.ellipse(x, y, 16, 22, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = COLORS.dark;
-                ctx.fillRect(x - 1, y + 22, 2, 30);
-                ctx.fillStyle = '#4a4a4a';
-                ctx.fillRect(x - 3, y + 20, 6, 4);
-            }
-
-            // 12. 成績單
-            ctx.fillStyle = '#f5efe6';
-            ctx.fillRect(340, 200, 160, 80);
-            ctx.fillStyle = COLORS.dark;
-            ctx.font = '14px "Courier New", monospace';
-            ctx.fillText('📜 DSE 成績', 370, 224);
-            ctx.font = '18px "Courier New", monospace';
-            ctx.fillText('🌟🌟🌟', 380, 254);
-
-            // 13. 畢業帽
-            ctx.fillStyle = COLORS.dark;
-            ctx.fillRect(560, 180, 40, 6);
-            ctx.fillRect(574, 160, 12, 20);
-            ctx.fillStyle = '#d4b84a';
-            ctx.fillRect(556, 176, 48, 8);
-            ctx.fillRect(572, 156, 16, 8);
-
-            // 14. 花束
-            ctx.fillStyle = '#4a6a3a';
-            ctx.fillRect(60, 260, 6, 30);
-            const flowerCols = ['#c45a5a', '#f5d0a0', '#d4b84a', '#4a7a9a', '#f5c8c8'];
-            for (let i = 0; i < 5; i++) {
-                ctx.fillStyle = flowerCols[i];
-                ctx.fillRect(56 + i * 6, 256 - i * 4, 10, 10);
-            }
-
-            // 15-24. 彩帶
-            for (let i = 0; i < 12; i++) {
-                const x = (i * 55 + frame * 0.5) % 660;
-                const y = (i * 28 + frame * 0.3) % 340 + 20;
-                ctx.fillStyle = ['#c45a5a', '#d4b84a', '#4a7a9a', '#4a8a4a', '#f5c8c8', '#d4c8e8'][i % 6];
-                ctx.fillRect(x, y, 8, 4);
-                ctx.fillRect(x + 2, y + 4, 4, 4);
-            }
-
-            // 25. 旗幟
-            ctx.fillStyle = COLORS.dark;
-            ctx.fillRect(240, 40, 4, 80);
-            ctx.fillStyle = '#4a7a9a';
-            ctx.fillRect(244, 40, 40, 24);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.font = '14px "Courier New", monospace';
-            ctx.fillText('🎉', 252, 58);
-
-            // 26-28. 星星裝飾
-            for (let i = 0; i < 6; i++) {
-                const sx = 580 + i * 10;
-                const sy = 60 + i * 8;
-                ctx.fillStyle = '#d4b84a';
-                ctx.fillRect(sx, sy, 4, 4);
-                ctx.fillRect(sx + 1, sy - 3, 2, 10);
-                ctx.fillRect(sx - 3, sy + 1, 10, 2);
-            }
-
-            // 29-30. 小彩旗
-            for (let i = 0; i < 6; i++) {
-                const x = 20 + i * 28;
-                const colors = ['#f5c8c8', '#d4e8f5', '#b8e8c8', '#f5e8a8', '#d4c8e8', '#f5d8b8'];
-                ctx.fillStyle = colors[i % 6];
-                ctx.fillRect(x, 10, 14, 10);
-                ctx.fillRect(x + 4, 20, 6, 8);
-            }
-
-            // 31. 祝賀標語
-            ctx.fillStyle = '#4a6a8a';
-            ctx.fillRect(160, 290, 320, 20);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.font = '14px "Courier New", monospace';
-            ctx.fillText('✦ 祝賀畢業！ ✦', 240, 306);
-        }
-
-        function drawResult(frame) {
-            drawGraduation(frame);
-            // 額外彩紙
-            for (let i = 0; i < 40; i++) {
-                const x = (i * 37 + frame * 0.6) % 640;
-                const y = (i * 23 + frame * 0.4) % 480;
-                const colors = ['#c45a5a', '#4a8a4a', '#4a7a9a', '#d4b84a', '#8a6a9a', '#f5c8c8', '#f5d8b8', '#b8e8c8'];
-                ctx.fillStyle = colors[i % 8];
-                ctx.fillRect(x, y, 6, 6);
-                ctx.fillRect(x + 3, y + 3, 4, 4);
-            }
-            ctx.fillStyle = '#ffd700';
-            ctx.font = '44px "Courier New", monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText('⭐', 320, 70);
-            ctx.textAlign = 'left';
-        }
-
-        function drawHomeCustom(frame) {
-            drawSkyAndGround();
-            drawClouds(frame);
-
-            // 1. 學校建築
-            ctx.fillStyle = '#d4c5b2';
-            ctx.fillRect(60, 60, 520, 240);
-            ctx.fillStyle = '#c8b8a8';
-            ctx.fillRect(64, 64, 512, 232);
-
-            // 2-9. 窗戶
-            for (let i = 0; i < 4; i++) {
-                for (let j = 0; j < 2; j++) {
-                    ctx.fillStyle = '#8cb3d1';
-                    ctx.fillRect(90 + i * 130, 80 + j * 90, 80, 50);
-                    ctx.fillStyle = '#b8d4e8';
-                    ctx.fillRect(94 + i * 130, 84 + j * 90, 72, 42);
+                    ctx.font = '14px "Courier New", monospace';
+                    ctx.fillText('📊 小組報告進度', 60, 52);
+                    ctx.fillStyle = '#6a5a4a';
+                    ctx.beginPath();
+                    ctx.arc(440, 250, 80, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#8a7a6a';
+                    ctx.beginPath();
+                    ctx.arc(440, 250, 66, 0, Math.PI * 2);
+                    ctx.fill();
+                },
+                'classroom_teacher': () => {
+                    ctx.fillStyle = '#1a2a2a';
+                    ctx.fillRect(20, 20, 400, 130);
+                    ctx.fillStyle = '#2a4a4a';
+                    ctx.fillRect(24, 24, 392, 122);
+                    ctx.fillStyle = '#d4d4c0';
+                    ctx.font = '18px "Courier New", monospace';
+                    ctx.fillText('📝 課堂進行中', 60, 60);
+                    ctx.fillStyle = '#6a5a4a';
+                    ctx.fillRect(30, 160, 80, 50);
+                    for (let i = 0; i < 3; i++) {
+                        ctx.fillStyle = '#b8a090';
+                        ctx.fillRect(200 + i * 120, H - 80, 80, 8);
+                    }
+                },
+                'home': () => {
+                    ctx.fillStyle = '#e8ddd0';
+                    ctx.fillRect(0, 0, W, H - 50);
+                    ctx.fillStyle = '#6a4a3a';
+                    ctx.fillRect(40, H - 110, 160, 50);
+                    ctx.fillStyle = '#7a5a4a';
+                    ctx.fillRect(44, H - 116, 152, 12);
                     ctx.fillStyle = COLORS.dark;
-                    ctx.fillRect(130 + i * 130, 80 + j * 90, 4, 50);
-                    ctx.fillRect(90 + i * 130, 105 + j * 90, 80, 4);
+                    ctx.fillRect(240, H - 130, 120, 80);
+                    ctx.fillStyle = '#4a6a8a';
+                    ctx.fillRect(244, H - 126, 112, 72);
+                    ctx.fillStyle = '#d4b84a';
+                    ctx.beginPath();
+                    ctx.arc(430, H - 30, 28, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#c45a5a';
+                    ctx.beginPath();
+                    ctx.arc(424, H - 38, 14, 0, Math.PI * 2);
+                    ctx.fill();
+                },
+                'graduation': () => {
+                    ctx.fillStyle = '#6a5a4a';
+                    ctx.fillRect(120, 40, 24, 300);
+                    ctx.fillRect(496, 40, 24, 300);
+                    ctx.fillRect(120, 40, 400, 24);
+                    ctx.fillStyle = '#4a6a3a';
+                    ctx.font = '24px "Courier New", monospace';
+                    ctx.fillText('🎓 燕京書院', 200, 108);
+                    for (let i = 0; i < 8; i++) {
+                        const x = 40 + i * 60;
+                        const y = 20 + Math.sin(i * 0.9) * 20;
+                        ctx.fillStyle = ['#c45a5a', '#4a8a4a', '#4a7a9a', '#d4b84a', '#f5c8c8', '#6a9a7a'][i % 6];
+                        ctx.beginPath();
+                        ctx.ellipse(x, y, 16, 22, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = COLORS.dark;
+                        ctx.fillRect(x - 1, y + 22, 2, 30);
+                    }
+                    ctx.fillStyle = '#f5efe6';
+                    ctx.fillRect(340, 200, 160, 80);
+                    ctx.fillStyle = COLORS.dark;
+                    ctx.font = '14px "Courier New", monospace';
+                    ctx.fillText('📜 DSE 成績', 370, 224);
+                    ctx.font = '18px "Courier New", monospace';
+                    ctx.fillText('🌟🌟🌟', 380, 254);
+                },
+                'result': () => {
+                    drawSceneElements['graduation']();
+                    for (let i = 0; i < 20; i++) {
+                        const x = (i * 37 + frame * 0.6) % 640;
+                        const y = (i * 23 + frame * 0.4) % 480;
+                        ctx.fillStyle = ['#c45a5a', '#4a8a4a', '#4a7a9a', '#d4b84a', '#f5c8c8'][i % 5];
+                        ctx.fillRect(x, y, 6, 6);
+                    }
+                    ctx.fillStyle = '#ffd700';
+                    ctx.font = '44px "Courier New", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('⭐', 320, 70);
+                    ctx.textAlign = 'left';
+                },
+                'home_custom': () => {
+                    ctx.fillStyle = '#d4c5b2';
+                    ctx.fillRect(60, 60, 520, 240);
+                    ctx.fillStyle = '#c8b8a8';
+                    ctx.fillRect(64, 64, 512, 232);
+                    for (let i = 0; i < 3; i++) {
+                        for (let j = 0; j < 2; j++) {
+                            ctx.fillStyle = '#8cb3d1';
+                            ctx.fillRect(90 + i * 130, 80 + j * 90, 80, 50);
+                            ctx.fillStyle = '#b8d4e8';
+                            ctx.fillRect(94 + i * 130, 84 + j * 90, 72, 42);
+                        }
+                    }
+                    ctx.fillStyle = '#6a4a3a';
+                    ctx.fillRect(280, 260, 80, 40);
+                    ctx.fillStyle = COLORS.dark;
+                    ctx.font = '22px "Courier New", monospace';
+                    ctx.fillText('🏫 燕京書院', 220, 48);
+                    ctx.fillStyle = '#4a6a8a';
+                    ctx.fillRect(160, 300, 320, 20);
+                    ctx.fillStyle = '#f5f0e8';
+                    ctx.font = '12px "Courier New", monospace';
+                    ctx.fillText('✦ 歡迎加入燕京大家庭 ✦', 200, 316);
                 }
+            };
+
+            if (elements[stage]) {
+                elements[stage]();
+            } else {
+                // fallback
+                ctx.fillStyle = '#b5d4e8';
+                ctx.fillRect(0, 0, W, H);
+                ctx.fillStyle = '#6a9a5a';
+                ctx.fillRect(0, H - 60, W, 60);
             }
-
-            // 10. 大門
-            ctx.fillStyle = '#6a4a3a';
-            ctx.fillRect(280, 260, 80, 40);
-            ctx.fillStyle = '#8a6a5a';
-            ctx.fillRect(284, 264, 72, 32);
-            ctx.fillStyle = '#d4b84a';
-            ctx.fillRect(310, 282, 8, 8);
-
-            // 11. 校名
-            ctx.fillStyle = COLORS.dark;
-            ctx.font = '22px "Courier New", monospace';
-            ctx.fillText('🏫 燕京書院', 220, 48);
-
-            // 12. 旗幟
-            ctx.fillStyle = COLORS.dark;
-            ctx.fillRect(600, 60, 4, 80);
-            ctx.fillStyle = '#4a7a9a';
-            ctx.fillRect(604, 60, 30, 20);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.font = '12px "Courier New", monospace';
-            ctx.fillText('🏫', 610, 76);
-
-            // 13-20. 花圃
-            for (let i = 0; i < 10; i++) {
-                const fx = 40 + i * 20 + (i % 3) * 4;
-                const fy = 290 + (i % 3) * 4;
-                ctx.fillStyle = ['#f5c8c8', '#f5d8b8', '#d4c8e8', '#f5e8a8', '#b8e8c8'][i % 5];
-                ctx.fillRect(fx, fy, 4, 4);
-                ctx.fillRect(fx + 2, fy - 4, 4, 4);
-                ctx.fillStyle = '#4a6a3a';
-                ctx.fillRect(fx + 2, fy + 4, 2, 8);
-            }
-
-            // 21. 樹
-            ctx.fillStyle = '#3a5a3a';
-            ctx.fillRect(580, 280, 8, 30);
-            ctx.fillStyle = '#2a6a2a';
-            ctx.beginPath();
-            ctx.arc(584, 268, 30, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#3a7a3a';
-            ctx.beginPath();
-            ctx.arc(570, 250, 20, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(598, 250, 20, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 22. 歡迎標語
-            ctx.fillStyle = '#4a6a8a';
-            ctx.fillRect(160, 300, 320, 20);
-            ctx.fillStyle = '#f5f0e8';
-            ctx.font = '12px "Courier New", monospace';
-            ctx.fillText('✦ 歡迎加入燕京大家庭 ✦', 200, 316);
-
-            // 23-26. 小旗子
-            for (let i = 0; i < 4; i++) {
-                const x = 20 + i * 40;
-                ctx.fillStyle = COLORS.dark;
-                ctx.fillRect(x, 40, 2, 20);
-                ctx.fillStyle = ['#f5c8c8', '#d4e8f5', '#b8e8c8', '#f5e8a8'][i];
-                ctx.fillRect(x + 2, 40, 16, 10);
-            }
-
-            // 27-30. 裝飾星星
-            for (let i = 0; i < 6; i++) {
-                const sx = 20 + i * 100 + (i % 2) * 20;
-                const sy = 10 + (i % 3) * 8;
-                ctx.fillStyle = '#d4b84a';
-                ctx.fillRect(sx, sy, 3, 3);
-                ctx.fillRect(sx + 1, sy - 2, 1, 7);
-                ctx.fillRect(sx - 2, sy + 1, 7, 1);
-            }
-
-            // 31. 時鐘 (外牆)
-            ctx.fillStyle = COLORS.dark;
-            ctx.beginPath();
-            ctx.arc(40, 40, 16, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.white;
-            ctx.beginPath();
-            ctx.arc(40, 40, 12, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = COLORS.dark;
-            ctx.fillRect(37, 32, 3, 8);
         }
 
         // ---- 角色繪製 ----
@@ -2659,13 +1384,11 @@
             const bx = x - 18 * scale;
             const by = y - 36 * scale;
 
-            // 陰影
             ctx.fillStyle = 'rgba(0,0,0,0.12)';
             ctx.beginPath();
             ctx.ellipse(x, y + 14, 26 * scale, 8, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // 身體
             let shirtColor, pantsColor;
             if (outfit === 'summer') {
                 if (gender === 'boy') {
@@ -2704,18 +1427,15 @@
                 ctx.fillRect(bx + 22 * scale, by + 38 * scale, 10 * scale, 16 * scale);
             }
 
-            // 領帶/領結
             if (outfit === 'winter') {
                 ctx.fillStyle = '#4a4a6a';
                 ctx.fillRect(bx + 17 * scale, by + 18 * scale, 6 * scale, 14 * scale);
                 ctx.fillRect(bx + 14 * scale, by + 16 * scale, 12 * scale, 6 * scale);
             }
 
-            // 頭
             ctx.fillStyle = '#f5d0b0';
             ctx.fillRect(bx + 8 * scale, by - 2 * scale, 24 * scale, 20 * scale);
 
-            // 頭髮 (黑色短髮)
             ctx.fillStyle = '#1a1a1a';
             ctx.fillRect(bx + 4 * scale, by - 6 * scale, 32 * scale, 8 * scale);
             ctx.fillRect(bx + 2 * scale, by + 2 * scale, 6 * scale, 8 * scale);
@@ -2725,7 +1445,6 @@
                 ctx.fillRect(bx + 34 * scale, by + 8 * scale, 4 * scale, 8 * scale);
             }
 
-            // 眼睛
             ctx.fillStyle = '#f5f0e8';
             ctx.fillRect(bx + 10 * scale, by + 6 * scale, 8 * scale, 8 * scale);
             ctx.fillRect(bx + 22 * scale, by + 6 * scale, 8 * scale, 8 * scale);
@@ -2734,23 +1453,19 @@
             ctx.fillRect(bx + 12 * scale + eyeOff, by + 8 * scale, 4 * scale, 4 * scale);
             ctx.fillRect(bx + 24 * scale + eyeOff, by + 8 * scale, 4 * scale, 4 * scale);
 
-            // 嘴
             ctx.fillStyle = '#c45a5a';
             ctx.fillRect(bx + 14 * scale, by + 16 * scale, 12 * scale, 3 * scale);
 
-            // 手臂
             const armSwing = Math.sin(frame * 0.08) * 6 * scale;
             ctx.fillStyle = '#f5d0b0';
             ctx.fillRect(bx - 2 * scale, by + 20 * scale + armSwing, 8 * scale, 14 * scale);
             ctx.fillRect(bx + 34 * scale, by + 20 * scale - armSwing, 8 * scale, 14 * scale);
 
-            // 腳
             const legOff = Math.sin(frame * 0.1) * 4 * scale;
             ctx.fillStyle = '#2d2d2d';
             ctx.fillRect(bx + 8 * scale, by + 54 * scale + legOff, 8 * scale, 10 * scale);
             ctx.fillRect(bx + 24 * scale, by + 54 * scale - legOff, 8 * scale, 10 * scale);
 
-            // 書包
             if (state.page === 'quiz' || state.page === 'home') {
                 ctx.fillStyle = '#5a3a2a';
                 ctx.fillRect(bx + 28 * scale, by + 20 * scale, 10 * scale, 20 * scale);
@@ -2761,7 +1476,7 @@
         }
 
         // ================================================================
-        //  7. 道具彈窗 (置中放大)
+        //  8. 道具彈窗
         // ================================================================
         function showItemPopup(item, callback) {
             const overlay = document.createElement('div');
@@ -2781,7 +1496,6 @@
                 if (callback) callback();
             });
 
-            // 點擊背景也可關閉
             overlay.addEventListener('click', (e) => {
                 if (e.target === overlay) {
                     overlay.remove();
@@ -2791,7 +1505,7 @@
         }
 
         // ================================================================
-        //  8. 打字機效果
+        //  9. 打字機效果
         // ================================================================
         function typeWriter(element, text, speed = 50, callback) {
             if (state.isTyping) {
@@ -2827,7 +1541,7 @@
         }
 
         // ================================================================
-        //  9. 渲染函數
+        //  10. 渲染函數
         // ================================================================
 
         function renderHome() {
@@ -2957,13 +1671,11 @@
                 </div>
             `;
 
-            // 打字機效果 (只打題目)
             const qTextEl = document.getElementById('questionText');
             if (qTextEl) {
                 typeWriter(qTextEl, q.text, 50);
             }
 
-            // 選項點擊
             document.querySelectorAll('.option-btn').forEach(el => {
                 el.addEventListener('click', function() {
                     const idx = parseInt(this.dataset.optindex);
@@ -2983,7 +1695,6 @@
                     alert('請先選擇一個選項！ 😊');
                     return;
                 }
-                // 獲得道具
                 const qData = QUESTIONS[index];
                 const optIdx = state.answers[index].optionIndex;
                 const selectedOpt = qData.options[optIdx];
@@ -2991,7 +1702,6 @@
                 if (!state.items.some(i => i.name === item.name)) {
                     state.items.push(item);
                     updateInventory();
-                    // 顯示道具彈窗
                     showItemPopup(item, () => {
                         if (index === total - 1) {
                             const allDone = state.answers.every(a => a.optionIndex !== null);
@@ -3039,7 +1749,7 @@
         }
 
         // ================================================================
-        //  10. 結果頁
+        //  11. 結果頁
         // ================================================================
         function showResult() {
             state.page = 'result';
@@ -3255,7 +1965,7 @@
         }
 
         // ================================================================
-        //  11. 原型配對
+        //  12. 原型配對
         // ================================================================
         function getPrototype(scores) {
             const s = scores;
@@ -3298,7 +2008,7 @@
         }
 
         // ================================================================
-        //  12. Google Drive 儲存
+        //  13. Google Drive 儲存 (已更新 URL)
         // ================================================================
         function saveToGoogleDrive() {
             const data = {
@@ -3363,7 +2073,7 @@
         }
 
         // ================================================================
-        //  13. 重置 & 動畫
+        //  14. 重置 & 動畫
         // ================================================================
         function resetAll() {
             state.currentQ = 0;
@@ -3399,7 +2109,7 @@
         }
 
         // ================================================================
-        //  14. 啟動
+        //  15. 啟動
         // ================================================================
         renderHome();
 
@@ -3413,7 +2123,7 @@
 
         console.log('🎮 燕京生活啟航站 v4.0 已啟動！');
         console.log('📋 共 ' + QUESTIONS.length + ' 條題目，8 種性格原型');
-        console.log('🎨 全新 Everskies 明亮粉彩風格，每場景 30+ 元素');
+        console.log('💾 Google Apps Script URL 已設定');
         console.log('⌨️ 快捷鍵: 1-4 選項, Enter 下一題, R 重新測驗');
     </script>
 
