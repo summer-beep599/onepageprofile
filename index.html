@@ -796,6 +796,22 @@
             background: #e8a86a;
         }
 
+        /* 作答記錄 (PDF用) */
+        #captureContainer .capture-right .answer-log-pdf {
+            margin-top: 8px;
+            font-size: 0.6rem;
+            background: #f5ede4;
+            padding: 6px 12px;
+            border: 4px solid #2d2d2d;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+        }
+
+        #captureContainer .capture-right .answer-log-pdf .log-item {
+            display: inline-block;
+        }
+
         #captureContainer .capture-right .advice-block-capture {
             margin-top: 8px;
             font-size: 0.7rem;
@@ -964,10 +980,10 @@
 
     <script>
         // ================================================================
-        //  1. Google Apps Script URL (已更新)
+        //  1. Google Apps Script URL (已更新為您提供的最新連結)
         // ================================================================
         const GOOGLE_APPS_SCRIPT_URL =
-            'https://script.google.com/macros/s/AKfycbyoVabs0mJDFX_qu_D7WEgI9ixWsKV66mQ3yhnvCKw3lgYOb-eb48rU6h5Tx41mfic/exec';
+            'https://script.google.com/macros/s/AKfycbwr9TcWyRAxarYFXcrbLLIfrigmSSt5OXNrRJUMDB8cr36C7t_5qfhvL4FOlKIuU2Eq/exec';
 
         // ================================================================
         //  2. 題庫 (10題)
@@ -2154,7 +2170,7 @@
         }
 
         // ================================================================
-        //  13. 儲存為 PDF 並上傳到 Google Drive (新功能)
+        //  13. 儲存為 PDF 並上傳到 Google Drive (包含作答記錄)
         // ================================================================
         function capturePdfAndUpload() {
             const btn = document.getElementById('savePdfBtn');
@@ -2171,6 +2187,7 @@
             const q6Answer = state.answers[5];
             const isBullyChoice = (q6Answer.optionIndex === 3);
 
+            // 生成特質長條
             let traitRows = '';
             TRAIT_PAIRS.forEach(pair => {
                 const left = pair.left,
@@ -2191,6 +2208,17 @@
                         <span style="min-width:50px;">${right}</span>
                     </div>
                 `;
+            });
+
+            // --- 新增：生成作答記錄 (僅顯示選項字母) ---
+            let answerLogHtml = '';
+            QUESTIONS.forEach((q, idx) => {
+                const ans = state.answers[idx];
+                let choice = '未答';
+                if (ans.optionIndex !== null) {
+                    choice = q.options[ans.optionIndex].label;
+                }
+                answerLogHtml += `<span class="log-item"><strong>Q${idx+1}</strong>: ${choice}</span>`;
             });
 
             const adviceHtml = `
@@ -2222,6 +2250,7 @@
             ];
             const randomEncourage = encouragements[Math.floor(Math.random() * encouragements.length)];
 
+            // 填滿截圖容器（包含作答記錄）
             captureInner.innerHTML = `
                 <div style="max-width:100%; background:white; padding:30px; font-family:'Courier New',monospace;">
                     <div style="text-align:center; border-bottom:4px solid #2d2d2d; padding-bottom:16px; margin-bottom:20px;">
@@ -2242,6 +2271,11 @@
                             <div style="background:#f5ede4; border:4px solid #2d2d2d; padding:8px 12px;">
                                 <div style="font-weight:bold; font-size:0.8rem; margin-bottom:4px;">📊 特質分數</div>
                                 ${traitRows}
+                            </div>
+                            <!-- 作答記錄 (僅選項字母) -->
+                            <div style="margin-top:8px; background:#f5ede4; border:4px solid #2d2d2d; padding:6px 12px; display:flex; flex-wrap:wrap; gap:4px 12px; font-size:0.6rem;">
+                                <strong style="width:100%; font-size:0.7rem; margin-bottom:2px;">📝 作答記錄</strong>
+                                ${answerLogHtml}
                             </div>
                             ${careHtml}
                             ${adviceHtml}
@@ -2443,9 +2477,9 @@
             }
         });
 
-        console.log('🎮 燕京生活啟航站 v5.0 已啟動！');
+        console.log('🎮 燕京生活啟航站 v5.1 已啟動！');
         console.log('📋 共 ' + QUESTIONS.length + ' 條題目，8 種性格原型');
-        console.log('💾 支援儲存 PDF 到 Google Drive');
+        console.log('💾 支援儲存 PDF 到 Google Drive (包含作答記錄)');
         console.log('📷 支援儲存圖片到 Google Drive');
         console.log('⌨️ 快捷鍵: 1-4 選項, Enter 下一題, R 重新測驗');
     </script>
