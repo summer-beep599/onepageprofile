@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>燕京生活啟航站 - 像素冒險</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <!-- 引入 html2canvas 和 jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
@@ -1952,8 +1951,8 @@
                 </div>
             `;
 
-            // 綁定遞交按鈕事件
-            document.getElementById('submitBtn').addEventListener('click', uploadAndSavPDF);
+            // 綁定遞交按鈕事件 - 使用正確的函數
+            document.getElementById('submitBtn').addEventListener('click', uploadAndSavePDF);
 
             if (state.unlockedCostumes.length > 0) state.outfit = state.unlockedCostumes[0];
             else state.outfit = 'summer';
@@ -1970,122 +1969,100 @@
         }
 
         // ================================================================
-        //  12. 遞交並上傳 PDF
+        //  12. 遞交並上傳 PDF (完整修正版)
         // ================================================================
-        // ================================================================
-//  遞交並上傳 PDF (修正版)
-// ================================================================
-async function uploadAndSavePDF() {
-    const submitBtn = document.getElementById('submitBtn');
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = '傳送中...';
-    }
+        async function uploadAndSavePDF() {
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '傳送中...';
+            }
 
-    try {
-        // 1. 獲取結果頁面元素
-        const element = document.getElementById('resultPage');
-        if (!element) {
-            alert('找不到結果頁面！');
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '遞交'; }
-            return;
-        }
+            try {
+                // 1. 獲取結果頁面元素
+                const element = document.getElementById('resultPage');
+                if (!element) {
+                    alert('找不到結果頁面！');
+                    if (submitBtn) { submitBtn.disabled = false;
+                        submitBtn.textContent = '遞交'; }
+                    return;
+                }
 
-        // 2. 使用 html2canvas 將結果頁轉為圖片
-        const canvas = await html2canvas(element, {
-            useCORS: true,
-            scale: 2,
-            backgroundColor: '#f5ede4',
-            logging: false,
-        });
+                // 2. 使用 html2canvas 將結果頁轉為圖片
+                const canvas = await html2canvas(element, {
+                    useCORS: true,
+                    scale: 2,
+                    backgroundColor: '#f5ede4',
+                    logging: false,
+                });
 
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
-        // 3. 使用 jsPDF 建立 PDF
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height / canvas.width) * pdfWidth;
-        const pageHeight = pdf.internal.pageSize.getHeight();
+                // 3. 使用 jsPDF 建立 PDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height / canvas.width) * pdfWidth;
+                const pageHeight = pdf.internal.pageSize.getHeight();
 
-        let heightLeft = pdfHeight;
-        let position = 0;
+                let heightLeft = pdfHeight;
+                let position = 0;
 
-        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
+                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+                heightLeft -= pageHeight;
 
-        while (heightLeft > 0) {
-            position = heightLeft - pdfHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-            heightLeft -= pageHeight;
-        }
+                while (heightLeft > 0) {
+                    position = heightLeft - pdfHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+                    heightLeft -= pageHeight;
+                }
 
-        // 4. 將 PDF 轉為 Base64
-        const pdfBase64 = pdf.output('datauristring').split(',')[1];
+                // 4. 將 PDF 轉為 Base64
+                const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
-        // 5. 準備發送數據
-        const formattedDate = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-        const pName = state.studentName || "學生";
+                // 5. 準備發送數據
+                const formattedDate = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+                const pName = state.studentName || "學生";
 
-        const payload = {
-            studentName: pName,
-            pdfData: pdfBase64,
-            fileName: `燕京_${pName}_完整報告_${formattedDate}.pdf`
-        };
+                const payload = {
+                    studentName: pName,
+                    pdfData: pdfBase64,
+                    fileName: `燕京_${pName}_完整報告_${formattedDate}.pdf`
+                };
 
-        // 6. 發送到 Google Apps Script
-        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
-        });
+                // 6. 發送到 Google Apps Script
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-        const result = await response.json();
+                const result = await response.json();
 
-        if (result.status === 'success') {
-            alert('🎉 報告已成功遞交並生成 PDF 儲存至 Google Drive！');
-            console.log('儲存成功：', result.fileUrl);
-        } else {
-            alert('❌ 遞交失敗：' + (result.message || '未知錯誤'));
-        }
+                if (result.status === 'success') {
+                    alert('🎉 報告已成功遞交並生成 PDF 儲存至 Google Drive！');
+                    console.log('儲存成功：', result.fileUrl);
+                } else {
+                    alert('❌ 遞交失敗：' + (result.message || '未知錯誤'));
+                }
 
-    } catch (error) {
-        console.error('發生錯誤:', error);
-        alert('⚠️ 儲存或上傳時發生錯誤，請檢查網絡連線。\n錯誤: ' + error.message);
-    } finally {
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = '遞交';
-        }
-    }
-}
-        // ================================================================
-        //  13. 上傳 PDF 到 Google Drive
-        // ================================================================
-        function uploadPdfToDrive(pdfBlob) {
-            const formData = new FormData();
-            formData.append('file', pdfBlob, `燕京_${state.studentName}_完整報告.pdf`);
-            formData.append('name', state.studentName);
-            formData.append('timestamp', new Date().toISOString());
-
-            fetch(GOOGLE_APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: formData,
-            }).then(() => {
-                alert('✅ PDF 已成功儲存到 Google Drive！');
-            }).catch((err) => {
-                console.error('上傳失敗:', err);
-                alert('⚠️ PDF 上傳失敗，但 PDF 已在本機生成。請檢查網絡連線。');
-            });
+            } catch (error) {
+                console.error('發生錯誤:', error);
+                alert('⚠️ 儲存或上傳時發生錯誤，請檢查網絡連線。\n錯誤: ' + error.message);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '遞交';
+                }
+            }
         }
 
         // ================================================================
-        //  14. 原型配對
+        //  13. 原型配對
         // ================================================================
         function getPrototype(scores) {
             const s = scores;
@@ -2125,7 +2102,7 @@ async function uploadAndSavePDF() {
         }
 
         // ================================================================
-        //  15. 重置 & 動畫
+        //  14. 重置 & 動畫
         // ================================================================
         function resetAll() {
             state.currentQ = 0;
@@ -2161,7 +2138,7 @@ async function uploadAndSavePDF() {
         }
 
         // ================================================================
-        //  16. 啟動
+        //  15. 啟動
         // ================================================================
         renderHome();
 
@@ -2173,9 +2150,9 @@ async function uploadAndSavePDF() {
             }
         });
 
-        console.log('🎮 燕京生活啟航站 v4.1 已啟動！');
+        console.log('🎮 燕京生活啟航站 v4.2 已啟動！');
         console.log('📋 共 ' + QUESTIONS.length + ' 條題目，8 種性格原型');
-        console.log('📷 支援完整報告截圖 (手機也可用)');
+        console.log('📷 支援完整報告生成 PDF 並上傳 Google Drive');
         console.log('💾 Google Apps Script URL 已設定');
         console.log('⌨️ 快捷鍵: 1-4 選項, Enter 下一題, R 重新測驗');
     </script>
