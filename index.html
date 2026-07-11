@@ -1815,7 +1815,7 @@
         // ================================================================
         //  12. 遞交並上傳 PDF (使用 iframe + form 提交，完全繞過 CORS)
         // ================================================================
-       function submitAndUpload() {
+  function submitAndUpload() {
     const btn = document.getElementById('submitBtn');
     btn.textContent = '⏳ 儲存中...';
     btn.disabled = true;
@@ -1841,16 +1841,16 @@
     const params = new URLSearchParams(data);
     const url = GOOGLE_APPS_SCRIPT_URL + '?' + params.toString();
 
-    // 用新視窗打開（會自動執行 doGet）
+    // 用新視窗打開
     window.open(url, '_blank');
 
     btn.textContent = '✅ 已儲存';
     btn.disabled = false;
 
-    // 提示
+    // 提示用戶檢查 Google Drive
     setTimeout(() => {
-        alert('✅ 數據已提交！請檢查 Google Drive 中的「燕京生活啟航站_測驗數據」資料夾。');
-    }, 1000);
+        alert('✅ 數據已提交！\n請檢查 Google Drive 中的「燕京生活啟航站_測驗數據」資料夾。');
+    }, 500);
 }
 
         // ================================================================
