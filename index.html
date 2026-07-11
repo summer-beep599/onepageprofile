@@ -791,10 +791,10 @@
 
     <script>
         // ================================================================
-        //  1. Google Apps Script URL (請替換為您的部署網址)
+        //  1. Google Apps Script URL 
         // ================================================================
         const GOOGLE_APPS_SCRIPT_URL =
-            'https://script.google.com/macros/s/AKfycbyH0pG-nXVkNU8AAkbHoLv2aIWMzgqGCyZCi5jIbUCf3h1a4yTnnEUnd9hIMd1Ap-k/exec';
+            'https://script.google.com/macros/s/AKfycbxQyOh8VYZjLAQDwo7eYrcBMs_w_oRIGMLr2o0JTGNcvoVRGlQoiGiOFIKxpVhdem7x/exec';
 
         // ================================================================
         //  2. 題庫 (10題)
@@ -1815,65 +1815,43 @@
         // ================================================================
         //  12. 遞交並上傳 PDF (使用 iframe + form 提交，完全繞過 CORS)
         // ================================================================
-        function submitAndUpload() {
-            const btn = document.getElementById('submitBtn');
-            btn.textContent = '⏳ 生成中...';
-            btn.disabled = true;
+       function submitAndUpload() {
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = '⏳ 儲存中...';
+    btn.disabled = true;
 
-            // 1. 獲取結果頁面元素
-            const element = document.getElementById('resultPage');
-            if (!element) {
-                alert('找不到結果頁面！');
-                btn.textContent = '遞交';
-                btn.disabled = false;
-                return;
-            }
+    // 準備數據
+    const data = {
+        name: state.studentName,
+        scores: JSON.stringify(state.finalScores || {}),
+        prototype: state.proto ? state.proto.id : '',
+        items: JSON.stringify(state.items.map(i => i.name)),
+        costumes: JSON.stringify(state.unlockedCostumes || []),
+        answers: JSON.stringify(state.answers.map((a, idx) => {
+            const q = QUESTIONS[idx];
+            return {
+                qId: q.id,
+                option: a.optionIndex !== null ? q.options[a.optionIndex].label : '未答',
+                text: a.optionIndex !== null ? q.options[a.optionIndex].text.substring(0, 30) : ''
+            };
+        }))
+    };
 
-            // 2. 使用 html2canvas 將結果頁轉為圖片
-            html2canvas(element, {
-                useCORS: true,
-                scale: 2,
-                backgroundColor: '#f5ede4',
-                logging: false,
-            }).then((canvas) => {
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    // 建立 URL 參數
+    const params = new URLSearchParams(data);
+    const url = GOOGLE_APPS_SCRIPT_URL + '?' + params.toString();
 
-                // 3. 使用 jsPDF 建立 PDF
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (canvas.height / canvas.width) * pdfWidth;
-                const pageHeight = pdf.internal.pageSize.getHeight();
+    // 用新視窗打開（會自動執行 doGet）
+    window.open(url, '_blank');
 
-                let heightLeft = pdfHeight;
-                let position = 0;
+    btn.textContent = '✅ 已儲存';
+    btn.disabled = false;
 
-                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-                heightLeft -= pageHeight;
-
-                while (heightLeft > 0) {
-                    position = heightLeft - pdfHeight;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-                    heightLeft -= pageHeight;
-                }
-
-                // 4. 生成 PDF Blob
-                const pdfBlob = pdf.output('blob');
-
-                // 5. 使用 iframe + form 提交（完全繞過 CORS）
-                uploadPdfViaIframe(pdfBlob);
-
-                btn.textContent = '✅ 已遞交';
-                btn.disabled = false;
-
-            }).catch((err) => {
-                console.error('PDF 生成失敗:', err);
-                alert('⚠️ 生成 PDF 失敗，請稍後再試。\n錯誤: ' + err.message);
-                btn.textContent = '遞交';
-                btn.disabled = false;
-            });
-        }
+    // 提示
+    setTimeout(() => {
+        alert('✅ 數據已提交！請檢查 Google Drive 中的「燕京生活啟航站_測驗數據」資料夾。');
+    }, 1000);
+}
 
         // ================================================================
         //  13. 使用 iframe + form 提交 PDF（完全繞過 CORS）
