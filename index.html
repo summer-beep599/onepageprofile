@@ -1815,55 +1815,102 @@
         // ================================================================
         //  12. 遞交並上傳 PDF (使用 iframe + form 提交，完全繞過 CORS)
         // ================================================================
-  function submitAndUpload() {
+ // ================================================================
+//  12. 遞交並上傳 PDF (排除道具收集)
+// ================================================================
+function submitAndUpload() {
     const btn = document.getElementById('submitBtn');
-    btn.textContent = '⏳ 儲存中...';
+    btn.textContent = '⏳ 生成中...';
     btn.disabled = true;
 
-    // 準備數據
-    const data = {
-        name: state.studentName,
-        scores: JSON.stringify(state.finalScores || {}),
-        prototype: state.proto ? state.proto.id : '',
-        items: JSON.stringify(state.items.map(i => i.name)),
-        costumes: JSON.stringify(state.unlockedCostumes || []),
-        answers: JSON.stringify(state.answers.map((a, idx) => {
-            const q = QUESTIONS[idx];
-            return {
-                qId: q.id,
-                option: a.optionIndex !== null ? q.options[a.optionIndex].label : '未答',
-                text: a.optionIndex !== null ? q.options[a.optionIndex].text.substring(0, 30) : ''
-            };
-        }))
-    };
-
-    // 建立 form 用 GET 方式提交
-    const form = document.createElement('form');
-    form.method = 'GET';
-    form.action = GOOGLE_APPS_SCRIPT_URL;
-    form.target = '_blank';  // 新分頁打開
-
-    // 將所有數據轉為 input
-    for (let key in data) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = data[key];
-        form.appendChild(input);
+    // 1. 複製結果頁面並移除道具部分
+    const originalElement = document.getElementById('resultPage');
+    
+    // 如果找不到結果頁面
+    if (!originalElement) {
+        alert('找不到結果頁面！');
+        btn.textContent = '遞交';
+        btn.disabled = false;
+        return;
     }
 
-    document.body.appendChild(form);
-    form.submit();
+    // 複製節點
+    const clone = originalElement.cloneNode(true);
+    
+    // 移除克隆中的道具收集部分 (inventory-display)
+    const inventoryDisplay = clone.querySelector('.inventory-display');
+    if (inventoryDisplay) {
+        inventoryDisplay.remove();
+    }
 
-    // 清理
-    setTimeout(() => {
-        if (document.body.contains(form)) {
-            document.body.removeChild(form);
+    // 設定克隆樣式 (隱藏但保持尺寸)
+    clone.style.position = 'absolute';
+    clone.style.left = '-9999px';
+    clone.style.top = '0';
+    clone.style.width = originalElement.offsetWidth + 'px';
+    clone.style.backgroundColor = '#f5ede4';
+    clone.style.padding = '16px 18px';
+    clone.style.border = '4px solid #2d2d2d';
+    clone.style.borderRadius = '0';
+    document.body.appendChild(clone);
+
+    // 2. 使用 html2canvas 將克隆轉為圖片
+    html2canvas(clone, {
+        useCORS: true,
+        scale: 2,
+        backgroundColor: '#f5ede4',
+        logging: false,
+        width: clone.scrollWidth,
+        height: clone.scrollHeight,
+        windowWidth: clone.scrollWidth,
+        windowHeight: clone.scrollHeight,
+    }).then((canvas) => {
+        // 移除克隆
+        if (document.body.contains(clone)) {
+            document.body.removeChild(clone);
         }
-    }, 1000);
 
-    btn.textContent = '✅ 已提交';
-    btn.disabled = false;
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+        // 3. 使用 jsPDF 建立 PDF
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height / canvas.width) * pdfWidth;
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        let heightLeft = pdfHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+            position = heightLeft - pdfHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+            heightLeft -= pageHeight;
+        }
+
+        // 4. 生成 PDF Blob
+        const pdfBlob = pdf.output('blob');
+
+        // 5. 使用 iframe + form 提交
+        uploadPdfViaIframe(pdfBlob);
+
+        btn.textContent = '✅ 已遞交';
+        btn.disabled = false;
+
+    }).catch((err) => {
+        // 確保移除克隆
+        if (document.body.contains(clone)) {
+            document.body.removeChild(clone);
+        }
+        console.error('PDF 生成失敗:', err);
+        alert('⚠️ 生成 PDF 失敗，請稍後再試。\n錯誤: ' + err.message);
+        btn.textContent = '遞交';
+        btn.disabled = false;
+    });
 }
 
         // ================================================================
